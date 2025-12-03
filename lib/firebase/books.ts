@@ -115,7 +115,7 @@ export async function getAllBooks(): Promise<Book[]> {
         
         // Filtrar libros activos en el cliente (más flexible que el filtro de Firestore)
         const books = allBooksSnapshot.docs
-            .map(doc => {
+            .map((doc: QueryDocumentSnapshot<DocumentData>) => {
                 const data = doc.data();
                 // Si no tiene isActive o es true, incluirlo
                 if (data.isActive === undefined || data.isActive === true || data.isActive !== false) {
