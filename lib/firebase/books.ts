@@ -123,7 +123,7 @@ export async function getAllBooks(): Promise<Book[]> {
                 }
                 return null;
             })
-            .filter(book => book !== null) as Book[];
+            .filter((book: Book | null): book is Book => book !== null);
         
         console.log(`✅ getAllBooks: ${books.length} libros encontrados y convertidos (después de filtrar)`);
         
