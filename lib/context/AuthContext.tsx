@@ -19,6 +19,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     isAuthenticated: boolean;
+    isAdmin: boolean;
     login: (email: string, password: string) => Promise<void>;
     register: (email: string, password: string, displayName?: string) => Promise<void>;
     logout: () => Promise<void>;
@@ -32,15 +33,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
                 setUser(firebaseUser);
+                
+                // Verificar si el usuario es admin (custom claim)
+                const idTokenResult = await firebaseUser.getIdTokenResult();
+                const adminClaim = idTokenResult.claims.admin === true;
+                setIsAdmin(adminClaim);
+                
+                console.log('🔐 Auth state changed:', {
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    isAdmin: adminClaim
+                });
+                
                 // Crear o actualizar documento de usuario en Firestore
-                await createOrUpdateUserDocument(firebaseUser);
+                await createOrUpdateUserDocument(firebaseUser, adminClaim);
             } else {
                 setUser(null);
+                setIsAdmin(false);
             }
             setLoading(false);
         });
@@ -48,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => unsubscribe();
     }, []);
 
-    const createOrUpdateUserDocument = async (firebaseUser: User) => {
+    const createOrUpdateUserDocument = async (firebaseUser: User, isAdminUser: boolean) => {
         try {
             const userRef = doc(db, 'users', firebaseUser.uid);
             const userDoc = await getDoc(userRef);
@@ -61,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     photoURL: firebaseUser.photoURL || '',
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp(),
-                    role: 'user'
+                    role: isAdminUser ? 'admin' : 'user'
                 });
             } else {
                 // Actualizar documento existente
@@ -69,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     email: firebaseUser.email,
                     displayName: firebaseUser.displayName || userDoc.data().displayName,
                     photoURL: firebaseUser.photoURL || userDoc.data().photoURL,
+                    role: isAdminUser ? 'admin' : (userDoc.data().role || 'user'),
                     updatedAt: serverTimestamp()
                 }, { merge: true });
             }
@@ -145,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         loading,
         isAuthenticated: !!user,
+        isAdmin,
         login,
         register,
         logout,

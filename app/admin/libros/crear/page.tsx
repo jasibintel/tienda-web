@@ -1,15 +1,38 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/shared/Button';
-import { createBook } from '@/lib/mockAdminData';
+import { createBook } from '@/lib/firebase/books';
+import { useAuth } from '@/lib/context/AuthContext';
 import { Save, X } from 'lucide-react';
 import styles from '@/styles/pages/admin/BookForm.module.css';
 
 export default function CreateBookPage() {
     const router = useRouter();
+    const { user, isAdmin, loading: authLoading } = useAuth();
+    
+    // Verificar permisos de admin
+    useEffect(() => {
+        if (!authLoading && (!user || !isAdmin)) {
+            router.push('/');
+        }
+    }, [user, isAdmin, authLoading, router]);
+    
+    if (authLoading) {
+        return (
+            <AdminLayout title="Crear Libro">
+                <div style={{ padding: '48px', textAlign: 'center' }}>
+                    <p>Cargando...</p>
+                </div>
+            </AdminLayout>
+        );
+    }
+    
+    if (!user || !isAdmin) {
+        return null; // Redirigirá en el useEffect
+    }
     const [formData, setFormData] = useState({
         title: '',
         subtitle: '',
@@ -30,7 +53,9 @@ export default function CreateBookPage() {
         isActive: true
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [submitting, setSubmitting] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         // Basic validation
@@ -44,30 +69,41 @@ export default function CreateBookPage() {
             return;
         }
 
-        // Create book
-        const newBook = createBook({
-            title: formData.title,
-            subtitle: formData.subtitle || undefined,
-            author: formData.author,
-            price: formData.isFree ? undefined : Number(formData.price),
-            isFree: formData.isFree,
-            featured: formData.featured,
-            description: formData.description,
-            descriptionLong: formData.descriptionLong || formData.description,
-            learningPoints: formData.learningPoints.filter(p => p.trim() !== ''),
-            category: formData.category,
-            audience: formData.audience,
-            pages: formData.pages ? Number(formData.pages) : undefined,
-            language: formData.language,
-            publishedDate: formData.publishedDate || undefined,
-            isbn: formData.isbn || undefined,
-            publisher: formData.publisher || undefined,
-            isActive: formData.isActive,
-            formats: ['PDF', 'EPUB']
-        });
+        setSubmitting(true);
+        
+        try {
+            // Create book in Firestore
+            const newBook = await createBook({
+                title: formData.title,
+                subtitle: formData.subtitle || undefined,
+                author: formData.author,
+                price: formData.isFree ? undefined : Number(formData.price),
+                isFree: formData.isFree,
+                featured: formData.featured,
+                description: formData.description,
+                descriptionLong: formData.descriptionLong || formData.description,
+                learningPoints: formData.learningPoints.filter(p => p.trim() !== ''),
+                category: formData.category,
+                audience: formData.audience,
+                pages: formData.pages ? Number(formData.pages) : undefined,
+                language: formData.language,
+                publishedDate: formData.publishedDate || undefined,
+                isbn: formData.isbn || undefined,
+                publisher: formData.publisher || undefined,
+                isActive: formData.isActive,
+                formats: ['PDF', 'EPUB'],
+                coverUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop&q=80&fm=jpg', // Placeholder
+                createdBy: user.uid
+            });
 
-        alert(`Libro "${newBook.title}" creado exitosamente`);
-        router.push('/admin/libros');
+            alert(`Libro "${newBook.title}" creado exitosamente`);
+            router.push('/admin/libros');
+        } catch (error: any) {
+            console.error('Error al crear libro:', error);
+            alert(`Error al crear libro: ${error.message}`);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const addLearningPoint = () => {
@@ -393,9 +429,9 @@ export default function CreateBookPage() {
                     <Button type="button" variant="secondary" onClick={() => router.push('/admin/libros')}>
                         Cancelar
                     </Button>
-                    <Button type="submit" variant="primary">
+                    <Button type="submit" variant="primary" disabled={submitting}>
                         <Save size={20} />
-                        Guardar libro
+                        {submitting ? 'Guardando...' : 'Guardar libro'}
                     </Button>
                 </div>
             </form>

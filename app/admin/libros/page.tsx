@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import EmptyState from '@/components/admin/EmptyState';
 import Button from '@/components/shared/Button';
-import { mockAdminBooks, deleteBook, toggleBookActive } from '@/lib/mockAdminData';
+import { useBooks } from '@/lib/hooks/useBooks';
+import { deleteBook, updateBook } from '@/lib/firebase/books';
+import { useAuth } from '@/lib/context/AuthContext';
 import { Book as BookIcon, Plus, Search, Edit, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import styles from '@/styles/pages/admin/BooksList.module.css';
@@ -14,12 +16,34 @@ type FilterType = 'all' | 'free' | 'paid' | 'featured' | 'active' | 'inactive';
 
 export default function BooksListPage() {
     const router = useRouter();
-    const [books, setBooks] = useState(mockAdminBooks);
+    const { user, isAdmin, loading: authLoading } = useAuth();
+    const { books: allBooks, loading: booksLoading, refetch } = useBooks();
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+    
+    // Verificar permisos de admin
+    useEffect(() => {
+        if (!authLoading && (!user || !isAdmin)) {
+            router.push('/');
+        }
+    }, [user, isAdmin, authLoading, router]);
+    
+    if (authLoading || booksLoading) {
+        return (
+            <AdminLayout title="Libros">
+                <div style={{ padding: '48px', textAlign: 'center' }}>
+                    <p>Cargando...</p>
+                </div>
+            </AdminLayout>
+        );
+    }
+    
+    if (!user || !isAdmin) {
+        return null; // Redirigirá en el useEffect
+    }
 
     // Filter books
-    const filteredBooks = books.filter(book => {
+    const filteredBooks = allBooks.filter(book => {
         // Search filter
         const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             book.author.toLowerCase().includes(searchQuery.toLowerCase());
@@ -35,24 +59,37 @@ export default function BooksListPage() {
             case 'featured':
                 return book.featured;
             case 'active':
-                return book.isActive;
+                return book.isActive !== false;
             case 'inactive':
-                return !book.isActive;
+                return book.isActive === false;
             default:
                 return true;
         }
     });
 
-    const handleDelete = (id: string, title: string) => {
-        if (confirm(`¿Eliminar "${title}"?\n\nEsta acción no se puede deshacer.`)) {
-            deleteBook(id);
-            setBooks([...mockAdminBooks]);
+    const handleDelete = async (id: string, title: string) => {
+        if (!confirm(`¿Eliminar "${title}"?\n\nEsta acción no se puede deshacer.`)) {
+            return;
+        }
+        
+        try {
+            await deleteBook(id);
+            alert(`Libro "${title}" eliminado exitosamente`);
+            refetch(); // Recargar la lista
+        } catch (error: any) {
+            console.error('Error al eliminar libro:', error);
+            alert(`Error al eliminar libro: ${error.message}`);
         }
     };
 
-    const handleToggleActive = (id: string) => {
-        toggleBookActive(id);
-        setBooks([...mockAdminBooks]);
+    const handleToggleActive = async (id: string, currentActive: boolean) => {
+        try {
+            await updateBook(id, { isActive: !currentActive });
+            refetch(); // Recargar la lista
+        } catch (error: any) {
+            console.error('Error al cambiar estado del libro:', error);
+            alert(`Error al actualizar libro: ${error.message}`);
+        }
     };
 
     return (
@@ -151,8 +188,8 @@ export default function BooksListPage() {
                                             <label className={styles.toggle}>
                                                 <input
                                                     type="checkbox"
-                                                    checked={book.isActive}
-                                                    onChange={() => handleToggleActive(book.id)}
+                                                    checked={book.isActive !== false}
+                                                    onChange={() => handleToggleActive(book.id, book.isActive !== false)}
                                                 />
                                                 <span className={styles.toggleSlider}></span>
                                             </label>
