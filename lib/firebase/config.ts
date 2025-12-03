@@ -9,13 +9,19 @@ import { getAnalytics } from 'firebase/analytics';
 
 // Your web app's Firebase configuration
 // Configuración extraída del proyecto Flutter anterior (tufecrecelibros)
+// Limpiar valores de variables de entorno (remover espacios y saltos de línea)
+const cleanEnvVar = (value: string | undefined): string | undefined => {
+    if (!value) return undefined;
+    return value.trim().replace(/\n/g, '').replace(/\r/g, '');
+};
+
 const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    apiKey: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
+    authDomain: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN),
+    projectId: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID),
+    storageBucket: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET),
+    messagingSenderId: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID),
+    appId: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_APP_ID),
     // measurementId OMITIDO - causa error 400 INVALID_ARGUMENT en Firebase Installations
     // que bloquea la inicialización de Firestore. Se puede agregar más tarde cuando
     // se resuelva el problema de configuración del Measurement ID.
