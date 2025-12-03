@@ -65,19 +65,35 @@ export async function getAllBooks(): Promise<Book[]> {
         );
         
         console.log('🔄 getAllBooks: Ejecutando query simple (sin orderBy)...');
-        const querySnapshot = await getDocs(q);
-        const books = querySnapshot.docs.map(docToBook);
-        console.log(`✅ getAllBooks: ${books.length} libros encontrados`);
+        console.log('🔄 getAllBooks: Esperando respuesta de Firestore...');
         
-        // Ordenar por createdAt en el cliente (más confiable que depender de índices)
-        const sortedBooks = books.sort((a, b) => {
-            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            return dateB - dateA;
-        });
-        
-        console.log(`✅ getAllBooks: ${sortedBooks.length} libros ordenados y listos`);
-        return sortedBooks;
+        try {
+            const querySnapshot = await getDocs(q);
+            console.log('✅ getAllBooks: Query completada, procesando documentos...');
+            
+            const books = querySnapshot.docs.map((doc, index) => {
+                if (index < 3) {
+                    console.log(`📖 Libro ${index + 1}: ${doc.data().title || 'Sin título'}`);
+                }
+                return docToBook(doc);
+            });
+            
+            console.log(`✅ getAllBooks: ${books.length} libros encontrados y convertidos`);
+            
+            // Ordenar por createdAt en el cliente (más confiable que depender de índices)
+            const sortedBooks = books.sort((a, b) => {
+                const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return dateB - dateA;
+            });
+            
+            console.log(`✅ getAllBooks: ${sortedBooks.length} libros ordenados y listos para retornar`);
+            return sortedBooks;
+        } catch (queryError: any) {
+            console.error('❌ getAllBooks: Error en getDocs:', queryError.code, queryError.message);
+            console.error('❌ getAllBooks: Stack:', queryError.stack);
+            throw queryError;
+        }
     } catch (error: any) {
         console.error('❌ getAllBooks: Error:', error.code, error.message);
         console.error('Stack:', error.stack);
