@@ -23,8 +23,26 @@ export default function BooksListPage() {
     
     // Verificar permisos de admin
     useEffect(() => {
-        if (!authLoading && (!user || !isAdmin)) {
-            router.push('/');
+        if (!authLoading) {
+            if (!user) {
+                console.log('❌ Admin: Usuario no autenticado, redirigiendo a login');
+                router.push('/auth/login');
+                return;
+            }
+            
+            if (!isAdmin) {
+                console.log('❌ Admin: Usuario no es admin', {
+                    uid: user.uid,
+                    email: user.email,
+                    isAdmin: isAdmin
+                });
+                console.log('💡 Si acabas de establecer el custom claim, cierra sesión y vuelve a iniciar sesión');
+                alert('No tienes permisos de administrador. Si acabas de configurar el admin, cierra sesión y vuelve a iniciar sesión.');
+                router.push('/');
+                return;
+            }
+            
+            console.log('✅ Admin: Usuario autenticado y es admin');
         }
     }, [user, isAdmin, authLoading, router]);
     
@@ -38,8 +56,38 @@ export default function BooksListPage() {
         );
     }
     
-    if (!user || !isAdmin) {
-        return null; // Redirigirá en el useEffect
+    if (!user) {
+        return (
+            <AdminLayout title="Libros">
+                <div style={{ padding: '48px', textAlign: 'center' }}>
+                    <p>Redirigiendo a login...</p>
+                </div>
+            </AdminLayout>
+        );
+    }
+    
+    if (!isAdmin) {
+        return (
+            <AdminLayout title="Libros">
+                <div style={{ padding: '48px', textAlign: 'center' }}>
+                    <p style={{ color: 'red', fontSize: '18px', fontWeight: 'bold' }}>
+                        No tienes permisos de administrador
+                    </p>
+                    <p style={{ marginTop: '16px' }}>
+                        Si acabas de configurar el admin, cierra sesión y vuelve a iniciar sesión.
+                    </p>
+                    <p style={{ marginTop: '16px', fontSize: '14px', color: '#666' }}>
+                        Abre la consola del navegador (F12) para ver más detalles.
+                    </p>
+                    <Button
+                        onClick={() => router.push('/')}
+                        style={{ marginTop: '24px' }}
+                    >
+                        Volver al inicio
+                    </Button>
+                </div>
+            </AdminLayout>
+        );
     }
 
     // Filter books

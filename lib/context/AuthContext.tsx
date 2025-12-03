@@ -41,18 +41,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(firebaseUser);
                 
                 // Verificar si el usuario es admin (custom claim)
-                const idTokenResult = await firebaseUser.getIdTokenResult();
-                const adminClaim = idTokenResult.claims.admin === true;
-                setIsAdmin(adminClaim);
-                
-                console.log('🔐 Auth state changed:', {
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email,
-                    isAdmin: adminClaim
-                });
+                try {
+                    // Forzar refrescar el token para obtener los custom claims más recientes
+                    await firebaseUser.getIdToken(true);
+                    const idTokenResult = await firebaseUser.getIdTokenResult();
+                    const adminClaim = idTokenResult.claims.admin === true;
+                    setIsAdmin(adminClaim);
+                    
+                    console.log('🔐 Auth state changed:', {
+                        uid: firebaseUser.uid,
+                        email: firebaseUser.email,
+                        isAdmin: adminClaim,
+                        claims: idTokenResult.claims
+                    });
+                    
+                    if (!adminClaim) {
+                        console.warn('⚠️ Usuario no es admin. Si acabas de establecer el custom claim:');
+                        console.warn('   1. Cierra sesión completamente');
+                        console.warn('   2. Vuelve a iniciar sesión');
+                        console.warn('   3. El token se actualizará con el claim admin: true');
+                    }
+                } catch (error: any) {
+                    console.error('Error al obtener token:', error);
+                    setIsAdmin(false);
+                }
                 
                 // Crear o actualizar documento de usuario en Firestore
-                await createOrUpdateUserDocument(firebaseUser, adminClaim);
+                await createOrUpdateUserDocument(firebaseUser, isAdmin);
             } else {
                 setUser(null);
                 setIsAdmin(false);
