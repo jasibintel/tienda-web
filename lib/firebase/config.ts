@@ -40,6 +40,20 @@ if (missingVars.length > 0) {
     });
 }
 
+// Verificar si el dominio está autorizado (solo en cliente)
+if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const isVercelDomain = hostname.includes('vercel.app');
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    const isAuthorizedDomain = hostname.includes('deglorialibros.com');
+    
+    if (isVercelDomain && !isAuthorizedDomain) {
+        console.warn('⚠️ Dominio de Vercel detectado. Asegúrate de que *.vercel.app esté autorizado en Firebase.');
+        console.warn('   Ve a: https://console.firebase.google.com/project/tufecrecelibros/settings/general');
+        console.warn('   Agrega el dominio: *.vercel.app en "Authorized domains"');
+    }
+}
+
 // Initialize Firebase (only once, and only on client-side)
 let app;
 try {
