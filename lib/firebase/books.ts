@@ -57,39 +57,27 @@ export async function getAllBooks(): Promise<Book[]> {
             console.log('🔄 getAllBooks: Iniciando query...');
         }
         
-        // Primero intentar con orderBy, si falla por falta de índice, usar solo where
-        let q = query(
+        // Query simple sin orderBy para evitar problemas de índices
+        // Ordenaremos en el cliente que es más confiable
+        const q = query(
             collection(db, BOOKS_COLLECTION),
             where('isActive', '==', true)
         );
         
-        try {
-            // Intentar agregar orderBy
-            q = query(q, orderBy('createdAt', 'desc'));
-            console.log('🔄 getAllBooks: Ejecutando query con orderBy...');
-            const querySnapshot = await getDocs(q);
-            if (process.env.NODE_ENV === 'development') {
-                console.log(`✅ getAllBooks: ${querySnapshot.docs.length} libros encontrados`);
-            }
-            return querySnapshot.docs.map(docToBook);
-        } catch (orderByError: any) {
-            // Siempre loguear errores, incluso en producción
-            console.warn('⚠️ getAllBooks: Error con orderBy:', orderByError.code, orderByError.message);
-            // Si falla por falta de índice, obtener sin orderBy y ordenar en el cliente
-            if (orderByError.code === 'failed-precondition' || orderByError.code === 'unimplemented') {
-                console.warn('📋 getAllBooks: Índice faltante, ordenando en el cliente');
-                const querySnapshot = await getDocs(q);
-                const books = querySnapshot.docs.map(docToBook);
-                console.log(`✅ getAllBooks: ${books.length} libros encontrados (sin orderBy)`);
-                // Ordenar por createdAt en el cliente
-                return books.sort((a, b) => {
-                    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                    return dateB - dateA;
-                });
-            }
-            throw orderByError;
-        }
+        console.log('🔄 getAllBooks: Ejecutando query simple (sin orderBy)...');
+        const querySnapshot = await getDocs(q);
+        const books = querySnapshot.docs.map(docToBook);
+        console.log(`✅ getAllBooks: ${books.length} libros encontrados`);
+        
+        // Ordenar por createdAt en el cliente (más confiable que depender de índices)
+        const sortedBooks = books.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA;
+        });
+        
+        console.log(`✅ getAllBooks: ${sortedBooks.length} libros ordenados y listos`);
+        return sortedBooks;
     } catch (error: any) {
         console.error('❌ getAllBooks: Error:', error.code, error.message);
         console.error('Stack:', error.stack);
