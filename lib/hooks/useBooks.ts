@@ -25,10 +25,16 @@ export function useBooks() {
         try {
             setLoading(true);
             setError(null);
+            console.log('🔄 Cargando libros desde Firestore...');
             const allBooks = await getAllBooks();
+            console.log(`✅ ${allBooks.length} libros cargados exitosamente`);
             setBooks(allBooks);
         } catch (err: any) {
-            setError(err.message || 'Error al cargar libros');
+            console.error('❌ Error al cargar libros:', err);
+            const errorMessage = err.message || 'Error al cargar libros';
+            setError(errorMessage);
+            // Si hay error, establecer array vacío para evitar estado de carga infinito
+            setBooks([]);
         } finally {
             setLoading(false);
         }

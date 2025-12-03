@@ -40,16 +40,45 @@ function docToBook(docSnap: QueryDocumentSnapshot<DocumentData>): Book {
 // Obtener todos los libros
 export async function getAllBooks(): Promise<Book[]> {
     try {
-        const q = query(
+        // Primero intentar con orderBy, si falla por falta de índice, usar solo where
+        let q = query(
             collection(db, BOOKS_COLLECTION),
-            where('isActive', '==', true),
-            orderBy('createdAt', 'desc')
+            where('isActive', '==', true)
         );
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(docToBook);
-    } catch (error) {
+        
+        try {
+            // Intentar agregar orderBy
+            q = query(q, orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(docToBook);
+        } catch (orderByError: any) {
+            // Si falla por falta de índice, obtener sin orderBy y ordenar en el cliente
+            if (orderByError.code === 'failed-precondition') {
+                console.warn('Índice faltante para orderBy, ordenando en el cliente');
+                const querySnapshot = await getDocs(q);
+                const books = querySnapshot.docs.map(docToBook);
+                // Ordenar por createdAt en el cliente
+                return books.sort((a, b) => {
+                    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return dateB - dateA;
+                });
+            }
+            throw orderByError;
+        }
+    } catch (error: any) {
         console.error('Error getting books:', error);
-        throw error;
+        // Si hay un error, intentar obtener todos los libros sin filtro
+        try {
+            const q = query(collection(db, BOOKS_COLLECTION));
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs
+                .map(docToBook)
+                .filter(book => book.isActive !== false);
+        } catch (fallbackError) {
+            console.error('Error en fallback:', fallbackError);
+            throw error;
+        }
     }
 }
 
@@ -73,50 +102,124 @@ export async function getBookById(id: string): Promise<Book | null> {
 // Obtener libros destacados
 export async function getFeaturedBooks(limitCount: number = 6): Promise<Book[]> {
     try {
-        const q = query(
+        let q = query(
             collection(db, BOOKS_COLLECTION),
             where('isActive', '==', true),
-            where('featured', '==', true),
-            orderBy('createdAt', 'desc'),
-            limit(limitCount)
+            where('featured', '==', true)
         );
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(docToBook);
-    } catch (error) {
+        
+        try {
+            q = query(q, orderBy('createdAt', 'desc'), limit(limitCount));
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(docToBook);
+        } catch (orderByError: any) {
+            if (orderByError.code === 'failed-precondition') {
+                console.warn('Índice faltante para orderBy en featured books, ordenando en el cliente');
+                const querySnapshot = await getDocs(q);
+                const books = querySnapshot.docs.map(docToBook);
+                const sorted = books.sort((a, b) => {
+                    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return dateB - dateA;
+                });
+                return sorted.slice(0, limitCount);
+            }
+            throw orderByError;
+        }
+    } catch (error: any) {
         console.error('Error getting featured books:', error);
-        throw error;
+        // Fallback: obtener todos y filtrar en el cliente
+        try {
+            const q = query(collection(db, BOOKS_COLLECTION));
+            const querySnapshot = await getDocs(q);
+            const allBooks = querySnapshot.docs.map(docToBook);
+            return allBooks
+                .filter(book => book.isActive !== false && book.featured === true)
+                .sort((a, b) => {
+                    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return dateB - dateA;
+                })
+                .slice(0, limitCount);
+        } catch (fallbackError) {
+            throw error;
+        }
     }
 }
 
 // Obtener libros gratuitos
 export async function getFreeBooks(): Promise<Book[]> {
     try {
-        const q = query(
+        let q = query(
             collection(db, BOOKS_COLLECTION),
             where('isActive', '==', true),
-            where('isFree', '==', true),
-            orderBy('createdAt', 'desc')
+            where('isFree', '==', true)
         );
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(docToBook);
-    } catch (error) {
+        
+        try {
+            q = query(q, orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(docToBook);
+        } catch (orderByError: any) {
+            if (orderByError.code === 'failed-precondition') {
+                console.warn('Índice faltante para orderBy en free books, ordenando en el cliente');
+                const querySnapshot = await getDocs(q);
+                const books = querySnapshot.docs.map(docToBook);
+                return books.sort((a, b) => {
+                    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return dateB - dateA;
+                });
+            }
+            throw orderByError;
+        }
+    } catch (error: any) {
         console.error('Error getting free books:', error);
-        throw error;
+        // Fallback: obtener todos y filtrar en el cliente
+        try {
+            const q = query(collection(db, BOOKS_COLLECTION));
+            const querySnapshot = await getDocs(q);
+            const allBooks = querySnapshot.docs.map(docToBook);
+            return allBooks
+                .filter(book => book.isActive !== false && book.isFree === true)
+                .sort((a, b) => {
+                    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return dateB - dateA;
+                });
+        } catch (fallbackError) {
+            throw error;
+        }
     }
 }
 
 // Buscar libros por categoría
 export async function getBooksByCategory(category: string): Promise<Book[]> {
     try {
-        const q = query(
+        let q = query(
             collection(db, BOOKS_COLLECTION),
             where('isActive', '==', true),
-            where('category', '==', category),
-            orderBy('createdAt', 'desc')
+            where('category', '==', category)
         );
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(docToBook);
-    } catch (error) {
+        
+        try {
+            q = query(q, orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(docToBook);
+        } catch (orderByError: any) {
+            if (orderByError.code === 'failed-precondition') {
+                console.warn('Índice faltante para orderBy en category books, ordenando en el cliente');
+                const querySnapshot = await getDocs(q);
+                const books = querySnapshot.docs.map(docToBook);
+                return books.sort((a, b) => {
+                    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return dateB - dateA;
+                });
+            }
+            throw orderByError;
+        }
+    } catch (error: any) {
         console.error('Error getting books by category:', error);
         throw error;
     }
@@ -193,25 +296,93 @@ export async function filterBooks(filters: BookFilters): Promise<Book[]> {
             q = query(q, where('featured', '==', filters.featured));
         }
 
-        q = query(q, orderBy('createdAt', 'desc'));
+        // Intentar agregar orderBy, si falla ordenar en el cliente
+        try {
+            q = query(q, orderBy('createdAt', 'desc'));
+            const querySnapshot = await getDocs(q);
+            let books = querySnapshot.docs.map(docToBook);
 
-        const querySnapshot = await getDocs(q);
-        let books = querySnapshot.docs.map(docToBook);
+            // Filtrar por búsqueda de texto si existe
+            if (filters.searchQuery) {
+                const term = filters.searchQuery.toLowerCase();
+                books = books.filter(book => 
+                    book.title.toLowerCase().includes(term) ||
+                    book.author.toLowerCase().includes(term) ||
+                    book.subtitle?.toLowerCase().includes(term)
+                );
+            }
 
-        // Filtrar por búsqueda de texto si existe
-        if (filters.searchQuery) {
-            const term = filters.searchQuery.toLowerCase();
-            books = books.filter(book => 
-                book.title.toLowerCase().includes(term) ||
-                book.author.toLowerCase().includes(term) ||
-                book.subtitle?.toLowerCase().includes(term)
-            );
+            return books;
+        } catch (orderByError: any) {
+            if (orderByError.code === 'failed-precondition') {
+                console.warn('Índice faltante para orderBy en filterBooks, ordenando en el cliente');
+                const querySnapshot = await getDocs(q);
+                let books = querySnapshot.docs.map(docToBook);
+                
+                // Ordenar en el cliente
+                books = books.sort((a, b) => {
+                    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return dateB - dateA;
+                });
+
+                // Filtrar por búsqueda de texto si existe
+                if (filters.searchQuery) {
+                    const term = filters.searchQuery.toLowerCase();
+                    books = books.filter(book => 
+                        book.title.toLowerCase().includes(term) ||
+                        book.author.toLowerCase().includes(term) ||
+                        book.subtitle?.toLowerCase().includes(term)
+                    );
+                }
+
+                return books;
+            }
+            throw orderByError;
         }
-
-        return books;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error filtering books:', error);
-        throw error;
+        // Fallback: obtener todos y filtrar en el cliente
+        try {
+            const q = query(collection(db, BOOKS_COLLECTION));
+            const querySnapshot = await getDocs(q);
+            let books = querySnapshot.docs
+                .map(docToBook)
+                .filter(book => book.isActive !== false);
+
+            // Aplicar filtros en el cliente
+            if (filters.category && filters.category !== 'all') {
+                books = books.filter(book => book.category === filters.category);
+            }
+            if (filters.audience && filters.audience !== 'all') {
+                books = books.filter(book => book.audience === filters.audience);
+            }
+            if (filters.isFree !== undefined) {
+                books = books.filter(book => book.isFree === filters.isFree);
+            }
+            if (filters.featured !== undefined) {
+                books = books.filter(book => book.featured === filters.featured);
+            }
+            if (filters.searchQuery) {
+                const term = filters.searchQuery.toLowerCase();
+                books = books.filter(book => 
+                    book.title.toLowerCase().includes(term) ||
+                    book.author.toLowerCase().includes(term) ||
+                    book.subtitle?.toLowerCase().includes(term)
+                );
+            }
+
+            // Ordenar por fecha
+            books = books.sort((a, b) => {
+                const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return dateB - dateA;
+            });
+
+            return books;
+        } catch (fallbackError) {
+            throw error;
+        }
     }
 }
 
