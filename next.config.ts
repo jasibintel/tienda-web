@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     formats: ['image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    unoptimized: true, // Necesario para hosting estático
+    // Vercel optimiza las imágenes automáticamente, no necesitamos unoptimized
   },
   reactStrictMode: true,
   // Configuración para Firebase Hosting
