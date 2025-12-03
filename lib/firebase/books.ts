@@ -40,6 +40,20 @@ function docToBook(docSnap: QueryDocumentSnapshot<DocumentData>): Book {
 // Obtener todos los libros
 export async function getAllBooks(): Promise<Book[]> {
     try {
+        // Verificar que db esté inicializado
+        if (!db) {
+            const errorMsg = 'Firestore no está inicializado. Verifica las variables de entorno de Firebase.';
+            console.error('❌ getAllBooks:', errorMsg);
+            console.error('Variables de entorno:', {
+                apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? '✅' : '❌',
+                projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? '✅' : '❌',
+                authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? '✅' : '❌',
+            });
+            throw new Error(errorMsg);
+        }
+
+        console.log('🔄 getAllBooks: Iniciando query...');
+        
         // Primero intentar con orderBy, si falla por falta de índice, usar solo where
         let q = query(
             collection(db, BOOKS_COLLECTION),
@@ -49,14 +63,18 @@ export async function getAllBooks(): Promise<Book[]> {
         try {
             // Intentar agregar orderBy
             q = query(q, orderBy('createdAt', 'desc'));
+            console.log('🔄 getAllBooks: Ejecutando query con orderBy...');
             const querySnapshot = await getDocs(q);
+            console.log(`✅ getAllBooks: ${querySnapshot.docs.length} libros encontrados`);
             return querySnapshot.docs.map(docToBook);
         } catch (orderByError: any) {
+            console.warn('⚠️ getAllBooks: Error con orderBy:', orderByError.code, orderByError.message);
             // Si falla por falta de índice, obtener sin orderBy y ordenar en el cliente
-            if (orderByError.code === 'failed-precondition') {
-                console.warn('Índice faltante para orderBy, ordenando en el cliente');
+            if (orderByError.code === 'failed-precondition' || orderByError.code === 'unimplemented') {
+                console.warn('📋 getAllBooks: Índice faltante, ordenando en el cliente');
                 const querySnapshot = await getDocs(q);
                 const books = querySnapshot.docs.map(docToBook);
+                console.log(`✅ getAllBooks: ${books.length} libros encontrados (sin orderBy)`);
                 // Ordenar por createdAt en el cliente
                 return books.sort((a, b) => {
                     const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -67,17 +85,22 @@ export async function getAllBooks(): Promise<Book[]> {
             throw orderByError;
         }
     } catch (error: any) {
-        console.error('Error getting books:', error);
+        console.error('❌ getAllBooks: Error:', error.code, error.message);
+        console.error('Stack:', error.stack);
+        
         // Si hay un error, intentar obtener todos los libros sin filtro
         try {
+            console.log('🔄 getAllBooks: Intentando fallback sin filtros...');
             const q = query(collection(db, BOOKS_COLLECTION));
             const querySnapshot = await getDocs(q);
-            return querySnapshot.docs
+            const books = querySnapshot.docs
                 .map(docToBook)
                 .filter(book => book.isActive !== false);
-        } catch (fallbackError) {
-            console.error('Error en fallback:', fallbackError);
-            throw error;
+            console.log(`✅ getAllBooks: ${books.length} libros encontrados (fallback)`);
+            return books;
+        } catch (fallbackError: any) {
+            console.error('❌ getAllBooks: Error en fallback:', fallbackError.code, fallbackError.message);
+            throw new Error(`Error al cargar libros: ${error.message || 'Error desconocido'}`);
         }
     }
 }

@@ -20,17 +20,28 @@ const firebaseConfig = {
 };
 
 // Validate that all required environment variables are set
-if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    console.warn('⚠️ Firebase configuration is incomplete. Please check your .env.local file.');
+const missingVars: string[] = [];
+if (!firebaseConfig.apiKey) missingVars.push('NEXT_PUBLIC_FIREBASE_API_KEY');
+if (!firebaseConfig.projectId) missingVars.push('NEXT_PUBLIC_FIREBASE_PROJECT_ID');
+if (!firebaseConfig.authDomain) missingVars.push('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN');
+
+if (missingVars.length > 0) {
+    console.error('❌ Firebase configuration is incomplete. Missing variables:', missingVars);
+    console.error('Please check your .env.local file or Vercel environment variables.');
 }
 
 // Initialize Firebase (only once, and only on client-side)
 let app;
-if (typeof window !== 'undefined') {
-    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-} else {
-    // Server-side: create a minimal config
-    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+try {
+    if (typeof window !== 'undefined') {
+        app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    } else {
+        // Server-side: create a minimal config
+        app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    }
+} catch (error: any) {
+    console.error('❌ Error initializing Firebase:', error.message);
+    throw error;
 }
 
 // Initialize Firebase services (only on client-side)

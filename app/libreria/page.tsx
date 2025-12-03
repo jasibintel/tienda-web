@@ -77,6 +77,9 @@ export default function CatalogPage() {
                 <CatalogHero />
                 <div style={{ padding: '48px', textAlign: 'center' }}>
                     <p>Cargando libros...</p>
+                    <p style={{ fontSize: '14px', color: '#666', marginTop: '16px' }}>
+                        Si esto tarda mucho, verifica la consola del navegador (F12) para ver errores.
+                    </p>
                 </div>
             </>
         );
@@ -88,7 +91,32 @@ export default function CatalogPage() {
             <>
                 <CatalogHero />
                 <div style={{ padding: '48px', textAlign: 'center' }}>
-                    <p style={{ color: 'red' }}>Error al cargar libros: {booksError}</p>
+                    <p style={{ color: 'red', fontSize: '18px', fontWeight: 'bold' }}>
+                        Error al cargar libros
+                    </p>
+                    <p style={{ color: '#666', marginTop: '16px' }}>
+                        {booksError}
+                    </p>
+                    <p style={{ fontSize: '14px', color: '#999', marginTop: '24px' }}>
+                        Verifica:
+                        <br />• Que las variables de entorno de Firebase estén configuradas en Vercel
+                        <br />• Que las reglas de Firestore permitan lectura pública
+                        <br />• Abre la consola del navegador (F12) para más detalles
+                    </p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        style={{
+                            marginTop: '24px',
+                            padding: '12px 24px',
+                            backgroundColor: '#0070f3',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Reintentar
+                    </button>
                 </div>
             </>
         );
