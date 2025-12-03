@@ -1,0 +1,57 @@
+.main {
+    min-height: 100vh;
+    background: var(--color-neutral-50);
+}
+
+.content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: var(--space-3xl);
+}
+
+.gridContainer {
+    padding: var(--space-xl);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Dev Controls - For demo purposes */
+.devControls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.devButton {
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.devButton:hover {
+    background: #444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .gridContainer {
+        padding: var(--space-md);
+    }
+}

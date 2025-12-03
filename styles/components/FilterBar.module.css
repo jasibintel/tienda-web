@@ -1,0 +1,219 @@
+/* FilterBar - Unified Single Row Design */
+.filterBarWrapper {
+    background: var(--color-neutral-0);
+    border-bottom: 1px solid #F3F4F6;
+    padding: var(--space-xl) 0;
+}
+
+.filterBar {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 var(--space-2xl);
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+/* Unified Row - Tabs + Search + Filters */
+.filtersRow {
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Tabs - Compact, Left Aligned */
+.tabs {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.tab {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-neutral-600);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.tab:hover {
+    color: var(--color-primary-900);
+    background: var(--color-primary-50);
+    border-radius: 6px 6px 0 0;
+}
+
+.tabActive {
+    color: var(--color-primary-900);
+    border-bottom-color: var(--color-primary-900);
+    font-weight: 700;
+}
+
+/* Divider between tabs and search */
+.divider {
+    width: 1px;
+    height: 32px;
+    background: #E5E7EB;
+    margin: 0 var(--space-sm);
+}
+
+/* Prominent Search Bar */
+.searchContainer {
+    flex: 1;
+    max-width: 400px;
+    position: relative;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-neutral-500);
+    pointer-events: none;
+}
+
+.searchInput {
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-neutral-900);
+    background: var(--color-neutral-0);
+    border: 1.5px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 10px 16px 10px 42px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: var(--color-primary-800);
+    box-shadow: 0 0 0 3px rgba(31, 60, 136, 0.08);
+}
+
+.searchInput::placeholder {
+    color: var(--color-neutral-500);
+}
+
+/* Dropdowns - Compact */
+.dropdown {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-neutral-800);
+    background: var(--color-neutral-0);
+    border: 1.5px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 140px;
+}
+
+.dropdown:hover {
+    border-color: var(--color-neutral-400);
+}
+
+.dropdown:focus {
+    outline: none;
+    border-color: var(--color-primary-800);
+    box-shadow: 0 0 0 3px rgba(31, 60, 136, 0.08);
+}
+
+/* Clear Button - Compact */
+.clearButton {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-neutral-700);
+    background: transparent;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.clearButton:hover {
+    background: var(--color-neutral-100);
+    border-color: var(--color-neutral-400);
+}
+
+/* Result Counter */
+.resultCounter {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: var(--space-md) var(--space-2xl) 0;
+}
+
+.resultText {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--color-neutral-700);
+}
+
+.resultText strong {
+    font-weight: 700;
+    color: var(--color-neutral-900);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .filtersRow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tabs {
+        justify-content: flex-start;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: var(--space-xs);
+    }
+
+    .divider {
+        display: none;
+    }
+
+    .searchContainer {
+        max-width: none;
+    }
+
+    .dropdown {
+        flex: 1;
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 640px) {
+    .filterBar {
+        padding: 0 var(--space-lg);
+    }
+
+    .resultCounter {
+        padding: var(--space-md) var(--space-lg) 0;
+    }
+
+    .tab {
+        font-size: 13px;
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    .searchInput {
+        font-size: 13px;
+    }
+
+    .dropdown,
+    .clearButton {
+        width: 100%;
+    }
+}

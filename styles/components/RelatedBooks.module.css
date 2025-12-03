@@ -1,0 +1,115 @@
+.section {
+    background: var(--color-neutral-0);
+    padding: var(--space-2xl) var(--space-xl);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.title {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-neutral-900);
+    line-height: 1.3;
+    margin: 0 0 var(--space-xs) 0;
+    text-align: center;
+}
+
+.subtitle {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-neutral-600);
+    line-height: 1.5;
+    margin: 0 0 var(--space-xl) 0;
+    text-align: center;
+}
+
+.carouselWrapper {
+    position: relative;
+}
+
+.carousel {
+    display: flex;
+    gap: var(--space-md);
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+    padding: var(--space-xs) 0;
+}
+
+.carousel::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+.cardWrapper {
+    flex: 0 0 220px;
+    width: 220px;
+}
+
+.navButton {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--color-neutral-0);
+    border: 1px solid var(--color-neutral-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-base) var(--ease-in-out);
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navButton:hover {
+    background: var(--color-primary-500);
+    border-color: var(--color-primary-500);
+    color: var(--color-neutral-0);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.navButtonLeft {
+    left: -24px;
+}
+
+.navButtonRight {
+    right: -24px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .navButton {
+        display: none;
+    }
+
+    .carousel {
+        padding: var(--space-xs) var(--space-md);
+        margin: 0 calc(-1 * var(--space-md));
+    }
+}
+
+@media (max-width: 768px) {
+    .section {
+        padding: var(--space-xl) var(--space-md);
+    }
+
+    .title {
+        font-size: 24px;
+    }
+
+    .cardWrapper {
+        flex: 0 0 180px;
+        width: 180px;
+    }
+}

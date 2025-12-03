@@ -1,0 +1,112 @@
+.section {
+    background: var(--color-neutral-50);
+    padding: var(--space-2xl) var(--space-xl);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+}
+
+.title {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--color-neutral-900);
+    margin-bottom: var(--space-md);
+}
+
+.subtitle {
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--color-neutral-700);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+}
+
+.card {
+    background: var(--color-neutral-0);
+    border: 2px solid transparent;
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    transition: all var(--transition-base) var(--ease-out);
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 200px;
+    justify-content: center;
+}
+
+.card:hover {
+    border-color: var(--color-primary-500);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.iconContainer {
+    color: var(--color-secondary-500);
+    margin-bottom: var(--space-md);
+    transition: transform var(--transition-base) var(--ease-out);
+}
+
+.card:hover .iconContainer {
+    transform: scale(1.1);
+}
+
+.categoryName {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-neutral-900);
+    margin-bottom: var(--space-sm);
+}
+
+.bookCount {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-neutral-500);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .section {
+        padding: var(--space-xl) var(--space-md);
+    }
+}
+
+@media (max-width: 640px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .title {
+        font-size: 24px;
+    }
+
+    .card {
+        min-height: 180px;
+    }
+
+    .iconContainer svg {
+        width: 48px;
+        height: 48px;
+    }
+}

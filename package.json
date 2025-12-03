@@ -6,9 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:firebase": "next build",
+    "deploy": "npm run build:firebase && firebase deploy --only hosting",
+    "deploy:all": "npm run build:firebase && firebase deploy",
+    "firebase:deploy:rules": "firebase deploy --only firestore:rules,storage:rules",
+    "firebase:deploy:firestore": "firebase deploy --only firestore:rules",
+    "firebase:deploy:storage": "firebase deploy --only storage:rules",
+    "firebase:deploy:hosting": "firebase deploy --only hosting"
   },
   "dependencies": {
+    "firebase": "^12.6.0",
+    "firebase-admin": "^13.6.0",
+    "lucide-react": "^0.555.0",
     "next": "16.0.6",
     "react": "19.2.0",
     "react-dom": "19.2.0"

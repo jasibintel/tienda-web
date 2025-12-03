@@ -1,0 +1,406 @@
+/* About Us Page - Inspirational Storytelling Design */
+
+.page {
+    min-height: 100vh;
+}
+
+/* Hero Section - Inspiracional */
+.hero {
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 6rem 0 4rem;
+    text-align: center;
+}
+
+.heroContainer {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.heroTitle {
+    font-family: var(--font-heading);
+    font-size: 56px;
+    font-weight: 700;
+    color: var(--color-neutral-900);
+    margin: 0 0 1rem 0;
+    letter-spacing: -1px;
+}
+
+.heroSubtitle {
+    font-family: var(--font-body);
+    font-size: 20px;
+    color: var(--color-neutral-600);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Nuestra Historia - Split 50/50 */
+.historySection {
+    padding: 5rem 0;
+    background: #ffffff;
+}
+
+.historySplit {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.historyImage {
+    position: relative;
+}
+
+.imagePlaceholder {
+    aspect-ratio: 4 / 3;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.placeholderIcon {
+    color: var(--color-neutral-400);
+}
+
+.placeholderText {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-neutral-500);
+    margin: 0;
+}
+
+.historyContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sectionTitle {
+    font-family: var(--font-heading);
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--color-neutral-900);
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.historyText {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.historyText p {
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--color-neutral-700);
+    line-height: 1.8;
+    margin: 0;
+}
+
+/* Nuestros Valores - Grid 3x2 */
+.valuesSection {
+    padding: 5rem 0;
+    background: #f8f9fa;
+}
+
+.valuesSection .sectionTitle {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.valuesGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.valueCard {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+}
+
+.valueCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.valueIcon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    background: linear-gradient(135deg, #F2B544 0%, #D4A03A 100%);
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(242, 181, 68, 0.25);
+}
+
+.valueTitle {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-neutral-900);
+    margin: 0 0 0.75rem 0;
+}
+
+.valueDescription {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-neutral-600);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Conoce al Fundador - Estilo Carta */
+.founderSection {
+    padding: 5rem 0;
+    background: #f8f9fa;
+}
+
+.founderCard {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 3rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+.founderImageContainer {
+    position: relative;
+}
+
+.founderImage {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 4px solid #F2B544;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.profilePlaceholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 48px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.founderContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.founderName {
+    font-family: var(--font-heading);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-neutral-900);
+    margin: 0;
+}
+
+.founderSignature {
+    font-family: 'Brush Script MT', cursive;
+    font-size: 36px;
+    font-weight: 400;
+    color: #D4A03A;
+    font-style: italic;
+}
+
+.founderRole {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--color-neutral-600);
+    margin: 0 0 1.5rem 0;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+}
+
+.founderBio {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.founderBio p {
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--color-neutral-700);
+    line-height: 1.8;
+    margin: 0;
+}
+
+.founderQuote {
+    background: #f8f9fa;
+    border-left: 3px solid #F2B544;
+    padding: 1.25rem 1.5rem;
+    border-radius: 0 8px 8px 0;
+    margin-top: 0.5rem;
+}
+
+.founderQuote p {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--color-neutral-800);
+    margin: 0;
+    line-height: 1.7;
+}
+
+/* Call to Action - Centrado */
+.ctaSection {
+    padding: 5rem 0;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+.ctaContent {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.ctaTitle {
+    font-family: var(--font-heading);
+    font-size: 40px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 1rem 0;
+}
+
+.ctaDescription {
+    font-family: var(--font-body);
+    font-size: 18px;
+    color: #cbd5e1;
+    line-height: 1.6;
+    margin: 0 0 2.5rem 0;
+}
+
+.ctaButtons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.ctaButtonPrimary,
+.ctaButtonSecondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 10px;
+    padding: 16px 32px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ctaButtonPrimary {
+    background: linear-gradient(135deg, #F2B544 0%, #D4A03A 100%);
+    color: #0f172a;
+    border: none;
+}
+
+.ctaButtonPrimary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(242, 181, 68, 0.3);
+}
+
+.ctaButtonSecondary {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.ctaButtonSecondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .historySplit {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+
+    .valuesGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .founderCard {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .founderImageContainer {
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .heroTitle {
+        font-size: 40px;
+    }
+
+    .heroSubtitle {
+        font-size: 18px;
+    }
+
+    .sectionTitle {
+        font-size: 32px;
+    }
+
+    .valuesGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .founderCard {
+        padding: 2rem;
+    }
+
+    .founderImage {
+        width: 140px;
+        height: 140px;
+    }
+
+    .ctaButtons {
+        flex-direction: column;
+    }
+
+    .ctaButtonPrimary,
+    .ctaButtonSecondary {
+        width: 100%;
+        justify-content: center;
+    }
+}

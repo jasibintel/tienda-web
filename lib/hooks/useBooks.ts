@@ -1,0 +1,141 @@
+// Hook personalizado para manejar libros desde Firestore
+
+import { useState, useEffect } from 'react';
+import { Book } from '@/lib/types';
+import {
+    getAllBooks,
+    getBookById,
+    getFeaturedBooks,
+    getFreeBooks,
+    getBooksByCategory,
+    filterBooks,
+    BookFilters
+} from '@/lib/firebase/books';
+
+export function useBooks() {
+    const [books, setBooks] = useState<Book[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        loadBooks();
+    }, []);
+
+    const loadBooks = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const allBooks = await getAllBooks();
+            setBooks(allBooks);
+        } catch (err: any) {
+            setError(err.message || 'Error al cargar libros');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { books, loading, error, refetch: loadBooks };
+}
+
+export function useBook(id: string) {
+    const [book, setBook] = useState<Book | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (id) {
+            loadBook();
+        }
+    }, [id]);
+
+    const loadBook = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const bookData = await getBookById(id);
+            setBook(bookData);
+        } catch (err: any) {
+            setError(err.message || 'Error al cargar el libro');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { book, loading, error, refetch: loadBook };
+}
+
+export function useFeaturedBooks(limitCount: number = 6) {
+    const [books, setBooks] = useState<Book[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        loadFeaturedBooks();
+    }, [limitCount]);
+
+    const loadFeaturedBooks = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const featured = await getFeaturedBooks(limitCount);
+            setBooks(featured);
+        } catch (err: any) {
+            setError(err.message || 'Error al cargar libros destacados');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { books, loading, error, refetch: loadFeaturedBooks };
+}
+
+export function useFreeBooks() {
+    const [books, setBooks] = useState<Book[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        loadFreeBooks();
+    }, []);
+
+    const loadFreeBooks = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const free = await getFreeBooks();
+            setBooks(free);
+        } catch (err: any) {
+            setError(err.message || 'Error al cargar libros gratuitos');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { books, loading, error, refetch: loadFreeBooks };
+}
+
+export function useFilteredBooks(filters: BookFilters) {
+    const [books, setBooks] = useState<Book[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        loadFilteredBooks();
+    }, [JSON.stringify(filters)]);
+
+    const loadFilteredBooks = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const filtered = await filterBooks(filters);
+            setBooks(filtered);
+        } catch (err: any) {
+            setError(err.message || 'Error al filtrar libros');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { books, loading, error, refetch: loadFilteredBooks };
+}
+

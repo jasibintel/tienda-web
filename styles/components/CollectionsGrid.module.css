@@ -1,0 +1,24 @@
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-xl);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-3xl) var(--space-xl);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .grid {
+        gap: var(--space-lg);
+        padding: var(--space-2xl) var(--space-lg);
+    }
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+        padding: var(--space-xl) var(--space-md);
+    }
+}

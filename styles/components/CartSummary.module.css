@@ -1,0 +1,121 @@
+/* Cart Summary */
+.summary {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.title {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-neutral-900);
+    margin: 0 0 1.5rem 0;
+}
+
+/* Details */
+.details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.label {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--color-neutral-700);
+}
+
+.value {
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-neutral-900);
+}
+
+/* Divider */
+.divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 0.5rem 0;
+}
+
+/* Total */
+.totalRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.5rem;
+}
+
+.totalLabel {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-neutral-900);
+}
+
+.totalValue {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-primary-900);
+}
+
+/* Checkout Button */
+.checkoutButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+    color: #0f172a;
+    background: linear-gradient(135deg, #F2B544 0%, #D4A03A 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 1.5rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.checkoutButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(242, 181, 68, 0.3);
+}
+
+/* Note */
+.note {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--color-neutral-600);
+    line-height: 1.5;
+    margin: 1rem 0 0 0;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .summary {
+        padding: 1.5rem;
+    }
+
+    .title {
+        font-size: 20px;
+    }
+
+    .totalValue {
+        font-size: 20px;
+    }
+}
