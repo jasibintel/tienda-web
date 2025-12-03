@@ -128,7 +128,7 @@ export async function getAllBooks(): Promise<Book[]> {
         console.log(`✅ getAllBooks: ${books.length} libros encontrados y convertidos (después de filtrar)`);
         
         // Ordenar por createdAt en el cliente (más confiable que depender de índices)
-        const sortedBooks = books.sort((a, b) => {
+        const sortedBooks = books.sort((a: Book, b: Book) => {
             const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
             return dateB - dateA;
