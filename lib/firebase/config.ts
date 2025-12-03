@@ -26,8 +26,16 @@ if (!firebaseConfig.projectId) missingVars.push('NEXT_PUBLIC_FIREBASE_PROJECT_ID
 if (!firebaseConfig.authDomain) missingVars.push('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN');
 
 if (missingVars.length > 0) {
+    const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+    const envSource = isProduction ? 'Vercel environment variables' : '.env.local file';
     console.error('❌ Firebase configuration is incomplete. Missing variables:', missingVars);
-    console.error('Please check your .env.local file or Vercel environment variables.');
+    console.error(`Please check your ${envSource}.`);
+    console.error('Current environment:', {
+        hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
+        apiKey: firebaseConfig.apiKey ? '✅' : '❌',
+        projectId: firebaseConfig.projectId ? '✅' : '❌',
+        authDomain: firebaseConfig.authDomain ? '✅' : '❌',
+    });
 }
 
 // Initialize Firebase (only once, and only on client-side)

@@ -52,7 +52,10 @@ export async function getAllBooks(): Promise<Book[]> {
             throw new Error(errorMsg);
         }
 
-        console.log('🔄 getAllBooks: Iniciando query...');
+        // Log solo en desarrollo para no saturar producción
+        if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 getAllBooks: Iniciando query...');
+        }
         
         // Primero intentar con orderBy, si falla por falta de índice, usar solo where
         let q = query(
@@ -65,9 +68,12 @@ export async function getAllBooks(): Promise<Book[]> {
             q = query(q, orderBy('createdAt', 'desc'));
             console.log('🔄 getAllBooks: Ejecutando query con orderBy...');
             const querySnapshot = await getDocs(q);
-            console.log(`✅ getAllBooks: ${querySnapshot.docs.length} libros encontrados`);
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`✅ getAllBooks: ${querySnapshot.docs.length} libros encontrados`);
+            }
             return querySnapshot.docs.map(docToBook);
         } catch (orderByError: any) {
+            // Siempre loguear errores, incluso en producción
             console.warn('⚠️ getAllBooks: Error con orderBy:', orderByError.code, orderByError.message);
             // Si falla por falta de índice, obtener sin orderBy y ordenar en el cliente
             if (orderByError.code === 'failed-precondition' || orderByError.code === 'unimplemented') {
