@@ -26,7 +26,15 @@ export function useBooks() {
             setLoading(true);
             setError(null);
             console.log('🔄 Cargando libros desde Firestore...');
-            const allBooks = await getAllBooks();
+            
+            // Agregar timeout para evitar que se quede colgado
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Timeout: La query tardó más de 30 segundos')), 30000);
+            });
+            
+            const booksPromise = getAllBooks();
+            const allBooks = await Promise.race([booksPromise, timeoutPromise]) as any;
+            
             console.log(`✅ ${allBooks.length} libros cargados exitosamente`);
             setBooks(allBooks);
         } catch (err: any) {
