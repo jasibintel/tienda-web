@@ -71,12 +71,13 @@ export default function CreateBookPage() {
                     <p style={{ marginTop: '16px', fontSize: '14px', color: '#666' }}>
                         Abre la consola del navegador (F12) para ver más detalles.
                     </p>
-                    <Button
-                        onClick={() => router.push('/')}
-                        style={{ marginTop: '24px' }}
-                    >
-                        Volver al inicio
-                    </Button>
+                    <div style={{ marginTop: '24px' }}>
+                        <Button
+                            onClick={() => router.push('/')}
+                        >
+                            Volver al inicio
+                        </Button>
+                    </div>
                 </div>
             </AdminLayout>
         );
