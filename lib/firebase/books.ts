@@ -60,35 +60,68 @@ export async function getAllBooks(): Promise<Book[]> {
         const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
         const isVercel = hostname.includes('vercel.app');
         
-        console.log('🔍 getAllBooks: Información de diagnóstico:', {
+        const diagnosticInfo = {
             dbInitialized: !!db,
             collectionName: BOOKS_COLLECTION,
             projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
             hostname: hostname,
             environment: isLocal ? 'local' : isVercel ? 'vercel' : 'production',
-            apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? '✅ Configurado' : '❌ Faltante'
-        });
+            apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? '✅ Configurado' : '❌ Faltante',
+            authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+            timestamp: new Date().toISOString()
+        };
+        
+        console.log('🔍 getAllBooks: Información de diagnóstico:', diagnosticInfo);
+        
+        // Verificar que db esté realmente inicializado
+        if (!db) {
+            throw new Error('Firestore (db) no está inicializado. Verifica las variables de entorno.');
+        }
         
         // Intentar obtener todos los libros sin filtro
         console.log('🔄 getAllBooks: Obteniendo todos los libros (sin filtro isActive)...');
-        console.log('🔄 getAllBooks: Ejecutando getDocs...');
+        console.log('🔄 getAllBooks: Creando query...');
         
         const allBooksQuery = query(collection(db, BOOKS_COLLECTION));
+        console.log('✅ getAllBooks: Query creada, ejecutando getDocs...');
+        console.log('⏳ getAllBooks: Esperando respuesta de Firestore (esto puede tardar si el dominio no está autorizado)...');
         
         // Timeout más largo en producción (puede tardar más si el dominio se está autorizando)
-        const timeoutSeconds = isLocal ? 10 : 20;
+        const timeoutSeconds = isLocal ? 10 : 30;
         const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error(`Timeout: La query tardó más de ${timeoutSeconds} segundos. Si acabas de agregar el dominio en Firebase, puede tardar unos minutos en autorizarse.`)), timeoutSeconds * 1000);
+            setTimeout(() => {
+                console.error(`⏰ getAllBooks: Timeout después de ${timeoutSeconds} segundos`);
+                reject(new Error(`Timeout: La query tardó más de ${timeoutSeconds} segundos. Si acabas de agregar el dominio en Firebase, puede tardar unos minutos en autorizarse.`));
+            }, timeoutSeconds * 1000);
         });
         
         let allBooksSnapshot;
         try {
+            // Agregar log cada 5 segundos para saber que sigue intentando
+            const progressInterval = setInterval(() => {
+                console.log('⏳ getAllBooks: Todavía esperando respuesta de Firestore...');
+            }, 5000);
+            
             allBooksSnapshot = await Promise.race([
-                getDocs(allBooksQuery),
-                timeoutPromise
+                getDocs(allBooksQuery).then(result => {
+                    clearInterval(progressInterval);
+                    return result;
+                }),
+                timeoutPromise.then(() => {
+                    clearInterval(progressInterval);
+                    throw new Error('Timeout');
+                })
             ]) as any;
+            
+            console.log('✅ getAllBooks: getDocs completado exitosamente!');
         } catch (timeoutError: any) {
             console.error('❌ getAllBooks: Timeout o error en getDocs:', timeoutError);
+            console.error('❌ getAllBooks: Error completo:', {
+                name: timeoutError?.name,
+                message: timeoutError?.message,
+                code: timeoutError?.code,
+                stack: timeoutError?.stack
+            });
             console.error('❌ getAllBooks: Posibles causas:');
             console.error('   1. El dominio de Vercel no está autorizado en Firebase (puede tardar unos minutos)');
             console.error('   2. Problema de permisos en Firestore');
@@ -98,6 +131,7 @@ export async function getAllBooks(): Promise<Book[]> {
             console.error('   - Verifica que *.vercel.app esté en "Authorized domains" en Firebase Console');
             console.error('   - Espera 2-5 minutos después de agregar el dominio');
             console.error('   - Verifica las reglas de Firestore: https://console.firebase.google.com/project/tufecrecelibros/firestore/rules');
+            console.error('   - Verifica que el projectId sea correcto:', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
             throw timeoutError;
         }
         
