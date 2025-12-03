@@ -61,24 +61,28 @@ export const auth = typeof window !== 'undefined' ? getAuth(app) : null as any;
 export const db = typeof window !== 'undefined' ? getFirestore(app) : null as any;
 export const storage = typeof window !== 'undefined' ? getStorage(app) : null as any;
 
-// Initialize Analytics (only in browser, and only if measurementId is valid)
-// Analytics initialization can fail and block Firebase, so we make it optional
-export const analytics = (() => {
-    if (typeof window === 'undefined') return null;
-    
-    try {
-        // Only initialize Analytics if measurementId is present and valid
-        if (firebaseConfig.measurementId && firebaseConfig.measurementId.startsWith('G-')) {
-            return getAnalytics(app);
-        } else {
-            console.warn('⚠️ Analytics: Measurement ID no válido o faltante, Analytics deshabilitado');
-            return null;
-        }
-    } catch (error: any) {
-        // If Analytics fails to initialize, log but don't block the app
-        console.warn('⚠️ Analytics: Error al inicializar, continuando sin Analytics:', error.message);
-        return null;
-    }
-})();
+// Analytics deshabilitado temporalmente
+// El Measurement ID está causando errores de Firebase Installations (400 INVALID_ARGUMENT)
+// que bloquean la inicialización de Firestore. Se deshabilitará hasta resolver el problema.
+export const analytics = null;
+
+// Código comentado - se puede reactivar cuando se resuelva el problema del Measurement ID
+// export const analytics = (() => {
+//     if (typeof window === 'undefined') return null;
+//     
+//     try {
+//         // Only initialize Analytics if measurementId is present and valid
+//         if (firebaseConfig.measurementId && firebaseConfig.measurementId.startsWith('G-')) {
+//             return getAnalytics(app);
+//         } else {
+//             console.warn('⚠️ Analytics: Measurement ID no válido o faltante, Analytics deshabilitado');
+//             return null;
+//         }
+//     } catch (error: any) {
+//         // If Analytics fails to initialize, log but don't block the app
+//         console.warn('⚠️ Analytics: Error al inicializar, continuando sin Analytics:', error.message);
+//         return null;
+//     }
+// })();
 
 export default app;
