@@ -98,10 +98,7 @@ export default function CatalogPage() {
                         {booksError}
                     </p>
                     <p style={{ fontSize: '14px', color: '#999', marginTop: '24px' }}>
-                        Verifica:
-                        <br />• Que las variables de entorno de Firebase estén configuradas en Vercel
-                        <br />• Que las reglas de Firestore permitan lectura pública
-                        <br />• Abre la consola del navegador (F12) para más detalles
+                        Abre la consola del navegador (F12) para ver el error completo.
                     </p>
                     <button
                         onClick={() => window.location.reload()}

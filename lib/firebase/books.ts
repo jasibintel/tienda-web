@@ -43,19 +43,19 @@ export async function getAllBooks(): Promise<Book[]> {
         // Verificar que db esté inicializado
         if (!db) {
             const errorMsg = 'Firestore no está inicializado. Verifica las variables de entorno de Firebase.';
-            console.error('❌ getAllBooks:', errorMsg);
-            console.error('Variables de entorno:', {
-                apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? '✅' : '❌',
-                projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? '✅' : '❌',
-                authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? '✅' : '❌',
+            console.error('Error en getAllBooks:', {
+                message: errorMsg,
+                error: new Error(errorMsg),
+                variables: {
+                    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? '✅' : '❌',
+                    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? '✅' : '❌',
+                    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? '✅' : '❌',
+                }
             });
             throw new Error(errorMsg);
         }
 
-        // Log solo en desarrollo para no saturar producción
-        if (process.env.NODE_ENV === 'development') {
-            console.log('🔄 getAllBooks: Iniciando query...');
-        }
+        console.log('🔄 getAllBooks: Iniciando query...');
         
         // Query simple sin orderBy para evitar problemas de índices
         // Ordenaremos en el cliente que es más confiable
@@ -67,51 +67,39 @@ export async function getAllBooks(): Promise<Book[]> {
         console.log('🔄 getAllBooks: Ejecutando query simple (sin orderBy)...');
         console.log('🔄 getAllBooks: Esperando respuesta de Firestore...');
         
-        try {
-            const querySnapshot = await getDocs(q);
-            console.log('✅ getAllBooks: Query completada, procesando documentos...');
-            
-            const books = querySnapshot.docs.map((doc, index) => {
-                if (index < 3) {
-                    console.log(`📖 Libro ${index + 1}: ${doc.data().title || 'Sin título'}`);
-                }
-                return docToBook(doc);
-            });
-            
-            console.log(`✅ getAllBooks: ${books.length} libros encontrados y convertidos`);
-            
-            // Ordenar por createdAt en el cliente (más confiable que depender de índices)
-            const sortedBooks = books.sort((a, b) => {
-                const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                return dateB - dateA;
-            });
-            
-            console.log(`✅ getAllBooks: ${sortedBooks.length} libros ordenados y listos para retornar`);
-            return sortedBooks;
-        } catch (queryError: any) {
-            console.error('❌ getAllBooks: Error en getDocs:', queryError.code, queryError.message);
-            console.error('❌ getAllBooks: Stack:', queryError.stack);
-            throw queryError;
-        }
-    } catch (error: any) {
-        console.error('❌ getAllBooks: Error:', error.code, error.message);
-        console.error('Stack:', error.stack);
+        const querySnapshot = await getDocs(q);
+        console.log('✅ getAllBooks: Query completada, procesando documentos...');
         
-        // Si hay un error, intentar obtener todos los libros sin filtro
-        try {
-            console.log('🔄 getAllBooks: Intentando fallback sin filtros...');
-            const q = query(collection(db, BOOKS_COLLECTION));
-            const querySnapshot = await getDocs(q);
-            const books = querySnapshot.docs
-                .map(docToBook)
-                .filter(book => book.isActive !== false);
-            console.log(`✅ getAllBooks: ${books.length} libros encontrados (fallback)`);
-            return books;
-        } catch (fallbackError: any) {
-            console.error('❌ getAllBooks: Error en fallback:', fallbackError.code, fallbackError.message);
-            throw new Error(`Error al cargar libros: ${error.message || 'Error desconocido'}`);
-        }
+        const books = querySnapshot.docs.map((doc, index) => {
+            if (index < 3) {
+                console.log(`📖 Libro ${index + 1}: ${doc.data().title || 'Sin título'}`);
+            }
+            return docToBook(doc);
+        });
+        
+        console.log(`✅ getAllBooks: ${books.length} libros encontrados y convertidos`);
+        
+        // Ordenar por createdAt en el cliente (más confiable que depender de índices)
+        const sortedBooks = books.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA;
+        });
+        
+        console.log(`✅ getAllBooks: ${sortedBooks.length} libros ordenados y listos para retornar`);
+        return sortedBooks;
+    } catch (error: any) {
+        // Capturar y mostrar el error completo sin ocultarlo
+        console.error('Error en getAllBooks:', error);
+        console.error('Error details:', {
+            name: error?.name,
+            message: error?.message,
+            code: error?.code,
+            stack: error?.stack,
+            cause: error?.cause,
+            fullError: error
+        });
+        throw error;
     }
 }
 
