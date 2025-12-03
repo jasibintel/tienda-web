@@ -41,11 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(firebaseUser);
                 
                 // Verificar si el usuario es admin (custom claim)
+                let adminClaim = false;
                 try {
                     // Forzar refrescar el token para obtener los custom claims más recientes
                     await firebaseUser.getIdToken(true);
                     const idTokenResult = await firebaseUser.getIdTokenResult();
-                    const adminClaim = idTokenResult.claims.admin === true;
+                    adminClaim = idTokenResult.claims.admin === true;
                     setIsAdmin(adminClaim);
                     
                     console.log('🔐 Auth state changed:', {
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
                 
                 // Crear o actualizar documento de usuario en Firestore
-                await createOrUpdateUserDocument(firebaseUser, isAdmin);
+                await createOrUpdateUserDocument(firebaseUser, adminClaim);
             } else {
                 setUser(null);
                 setIsAdmin(false);
