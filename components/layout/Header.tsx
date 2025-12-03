@@ -2,16 +2,20 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, X, Search, ShoppingBag, User } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Menu, X, Search, ShoppingBag, User, LogOut } from 'lucide-react';
 import { useCart } from '@/lib/context/CartContext';
+import { useAuth } from '@/lib/context/AuthContext';
 import styles from '@/styles/components/Header.module.css';
 
 export default function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
     const pathname = usePathname();
+    const router = useRouter();
     const { getItemCount } = useCart();
+    const { user, logout, loading: authLoading } = useAuth();
     const itemCount = getItemCount();
 
     useEffect(() => {
@@ -39,6 +43,16 @@ export default function Header() {
             return pathname === '/';
         }
         return pathname.startsWith(href);
+    };
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            router.push('/');
+            setUserMenuOpen(false);
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+        }
     };
 
     return (
@@ -78,11 +92,57 @@ export default function Header() {
                         )}
                     </Link>
 
-                    {/* Login Button / User Icon */}
-                    <Link href="/auth/login" className={styles.loginButton}>
-                        <User size={18} />
-                        <span>Iniciar sesión</span>
-                    </Link>
+                    {/* User Menu / Login Button */}
+                    {!authLoading && (
+                        user ? (
+                            <div className={styles.userMenu}>
+                                <button
+                                    className={styles.userButton}
+                                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                    aria-label="Menú de usuario"
+                                >
+                                    {user.photoURL ? (
+                                        <img
+                                            src={user.photoURL}
+                                            alt={user.displayName || 'Usuario'}
+                                            className={styles.userAvatar}
+                                        />
+                                    ) : (
+                                        <div className={styles.userAvatarPlaceholder}>
+                                            <User size={18} />
+                                        </div>
+                                    )}
+                                    <span className={styles.userName}>
+                                        {user.displayName || user.email?.split('@')[0] || 'Usuario'}
+                                    </span>
+                                </button>
+                                {userMenuOpen && (
+                                    <div className={styles.userDropdown}>
+                                        <Link
+                                            href="/mi-biblioteca"
+                                            className={styles.userDropdownItem}
+                                            onClick={() => setUserMenuOpen(false)}
+                                        >
+                                            <User size={18} />
+                                            Mi Biblioteca
+                                        </Link>
+                                        <button
+                                            className={styles.userDropdownItem}
+                                            onClick={handleLogout}
+                                        >
+                                            <LogOut size={18} />
+                                            Cerrar sesión
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <Link href="/auth/login" className={styles.loginButton}>
+                                <User size={18} />
+                                <span>Iniciar sesión</span>
+                            </Link>
+                        )
+                    )}
                 </div>
 
                 {/* Mobile Menu Button */}
@@ -119,10 +179,28 @@ export default function Header() {
                             <ShoppingBag size={20} />
                             <span>Carrito {itemCount > 0 ? `(${itemCount})` : ''}</span>
                         </Link>
-                        <Link href="/auth/login" className={styles.loginButtonMobile}>
-                            <User size={18} />
-                            <span>Iniciar sesión</span>
-                        </Link>
+                        {!authLoading && (
+                            user ? (
+                                <>
+                                    <Link href="/mi-biblioteca" className={styles.loginButtonMobile}>
+                                        <User size={18} />
+                                        <span>Mi Biblioteca</span>
+                                    </Link>
+                                    <button
+                                        className={styles.loginButtonMobile}
+                                        onClick={handleLogout}
+                                    >
+                                        <LogOut size={18} />
+                                        <span>Cerrar sesión</span>
+                                    </button>
+                                </>
+                            ) : (
+                                <Link href="/auth/login" className={styles.loginButtonMobile}>
+                                    <User size={18} />
+                                    <span>Iniciar sesión</span>
+                                </Link>
+                            )
+                        )}
                     </div>
                 </div>
             )}
