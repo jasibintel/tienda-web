@@ -4,7 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/shared/Button';
-import { mockAdminBooks, updateBook } from '@/lib/mockAdminData';
+import { updateBook, getBookById } from '@/lib/firebase/books';
+import { useBook } from '@/lib/hooks/useBooks';
+import { useAuth } from '@/lib/context/AuthContext';
 import { Save } from 'lucide-react';
 import styles from '@/styles/pages/admin/BookForm.module.css';
 
@@ -12,21 +14,62 @@ export default function EditBookPage() {
     const router = useRouter();
     const params = useParams();
     const bookId = params.id as string;
-
-    const [book, setBook] = useState(mockAdminBooks.find(b => b.id === bookId));
+    const { user, isAdmin, loading: authLoading } = useAuth();
+    const { book, loading: bookLoading, refetch } = useBook(bookId);
+    
+    // Verificar permisos de admin
+    useEffect(() => {
+        if (!authLoading && (!user || !isAdmin)) {
+            router.push('/');
+        }
+    }, [user, isAdmin, authLoading, router]);
     const [formData, setFormData] = useState({
-        title: book?.title || '',
-        subtitle: book?.subtitle || '',
-        author: book?.author || '',
-        price: book?.price?.toString() || '',
-        isFree: book?.isFree || false,
-        featured: book?.featured || false,
-        description: book?.description || '',
-        descriptionLong: book?.descriptionLong || '',
-        category: book?.category || 'devocionales',
-        audience: book?.audience || 'adultos',
-        isActive: book?.isActive !== undefined ? book.isActive : true
+        title: '',
+        subtitle: '',
+        author: '',
+        price: '',
+        isFree: false,
+        featured: false,
+        description: '',
+        descriptionLong: '',
+        category: 'devocionales',
+        audience: 'adultos',
+        isActive: true
     });
+    const [submitting, setSubmitting] = useState(false);
+
+    // Cargar datos del libro cuando esté disponible
+    useEffect(() => {
+        if (book) {
+            setFormData({
+                title: book.title || '',
+                subtitle: book.subtitle || '',
+                author: book.author || '',
+                price: book.price?.toString() || '',
+                isFree: book.isFree || false,
+                featured: book.featured || false,
+                description: book.description || '',
+                descriptionLong: book.descriptionLong || book.description || '',
+                category: book.category || 'devocionales',
+                audience: book.audience || 'adultos',
+                isActive: book.isActive !== undefined ? book.isActive : true
+            });
+        }
+    }, [book]);
+
+    if (authLoading || bookLoading) {
+        return (
+            <AdminLayout title="Editar Libro">
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                    <p>Cargando...</p>
+                </div>
+            </AdminLayout>
+        );
+    }
+
+    if (!user || !isAdmin) {
+        return null; // Redirigirá en el useEffect
+    }
 
     if (!book) {
         return (
@@ -41,26 +84,33 @@ export default function EditBookPage() {
         );
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const updatedBook = updateBook(bookId, {
-            title: formData.title,
-            subtitle: formData.subtitle || undefined,
-            author: formData.author,
-            price: formData.isFree ? undefined : Number(formData.price),
-            isFree: formData.isFree,
-            featured: formData.featured,
-            description: formData.description,
-            descriptionLong: formData.descriptionLong || formData.description,
-            category: formData.category,
-            audience: formData.audience,
-            isActive: formData.isActive
-        });
+        setSubmitting(true);
+        
+        try {
+            const updatedBook = await updateBook(bookId, {
+                title: formData.title,
+                subtitle: formData.subtitle || undefined,
+                author: formData.author,
+                price: formData.isFree ? undefined : Number(formData.price),
+                isFree: formData.isFree,
+                featured: formData.featured,
+                description: formData.description,
+                descriptionLong: formData.descriptionLong || formData.description,
+                category: formData.category,
+                audience: formData.audience,
+                isActive: formData.isActive
+            });
 
-        if (updatedBook) {
             alert(`Libro "${updatedBook.title}" actualizado exitosamente`);
             router.push('/admin/libros');
+        } catch (error: any) {
+            console.error('Error al actualizar libro:', error);
+            alert(`Error al actualizar libro: ${error.message}`);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -230,9 +280,9 @@ export default function EditBookPage() {
                     <Button type="button" variant="secondary" onClick={() => router.push('/admin/libros')}>
                         Cancelar
                     </Button>
-                    <Button type="submit" variant="primary">
+                    <Button type="submit" variant="primary" disabled={submitting}>
                         <Save size={20} />
-                        Guardar cambios
+                        {submitting ? 'Guardando...' : 'Guardar cambios'}
                     </Button>
                 </div>
             </form>
