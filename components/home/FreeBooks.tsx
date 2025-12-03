@@ -2,33 +2,16 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Download, FileText, BookOpen, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
+import { Download, ArrowRight } from 'lucide-react';
+import { useFreeBooks } from '@/lib/hooks/useBooks';
 import styles from '@/styles/components/FreeBooks.module.css';
 
 export default function FreeBooks() {
-    const resources = [
-        {
-            id: 1,
-            title: '30 Días de Devocionales',
-            description: 'Un mes completo de reflexiones diarias para profundizar tu relación con Dios.',
-            icon: BookOpen,
-            downloads: '2.5K'
-        },
-        {
-            id: 2,
-            title: 'Guía de Estudio Bíblico',
-            description: 'Herramientas prácticas para estudiar la Palabra con profundidad y claridad.',
-            icon: FileText,
-            downloads: '1.8K'
-        },
-        {
-            id: 3,
-            title: 'Plan de Lectura Anual',
-            description: 'Lee la Biblia completa en un año con nuestro plan estructurado y accesible.',
-            icon: Download,
-            downloads: '3.2K'
-        }
-    ];
+    const { books: freeBooks, loading } = useFreeBooks();
+    
+    // Mostrar solo los primeros 3 libros gratuitos
+    const displayedBooks = freeBooks.slice(0, 3);
 
     return (
         <section className={styles.section}>
@@ -45,27 +28,45 @@ export default function FreeBooks() {
                     </div>
 
                     {/* Resources Grid */}
-                    <div className={styles.grid}>
-                        {resources.map((resource) => {
-                            const Icon = resource.icon;
-                            return (
-                                <div key={resource.id} className={styles.card}>
-                                    <div className={styles.cardIcon}>
-                                        <Icon size={32} />
+                    {loading ? (
+                        <div style={{ padding: '48px', textAlign: 'center' }}>
+                            <p>Cargando libros gratuitos...</p>
+                        </div>
+                    ) : displayedBooks.length === 0 ? (
+                        <div style={{ padding: '48px', textAlign: 'center' }}>
+                            <p>No hay libros gratuitos disponibles</p>
+                        </div>
+                    ) : (
+                        <div className={styles.grid}>
+                            {displayedBooks.map((book) => (
+                                <Link key={book.id} href={`/libreria/${book.id}`} className={styles.card}>
+                                    <div className={styles.cardImage}>
+                                        <Image
+                                            src={book.coverUrl || '/images/book-placeholder.svg'}
+                                            alt={book.title}
+                                            width={200}
+                                            height={300}
+                                            className={styles.bookCover}
+                                            unoptimized
+                                        />
                                     </div>
-                                    <h3 className={styles.cardTitle}>{resource.title}</h3>
-                                    <p className={styles.cardDescription}>{resource.description}</p>
-                                    <div className={styles.cardFooter}>
-                                        <span className={styles.downloads}>{resource.downloads} descargas</span>
-                                        <Link href="/gratis" className={styles.downloadButton}>
-                                            <Download size={16} />
-                                            <span>Descargar</span>
-                                        </Link>
+                                    <div className={styles.cardContent}>
+                                        <h3 className={styles.cardTitle}>{book.title}</h3>
+                                        <p className={styles.cardDescription}>
+                                            {book.description?.substring(0, 100)}...
+                                        </p>
+                                        <div className={styles.cardFooter}>
+                                            <span className={styles.downloads}>Gratis</span>
+                                            <span className={styles.downloadButton}>
+                                                <Download size={16} />
+                                                <span>Ver libro</span>
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
 
                     {/* CTA */}
                     <div className={styles.cta}>

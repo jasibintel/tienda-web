@@ -48,13 +48,18 @@ function BookCard({ book, onButtonClick }: BookCardProps) {
                 {/* Cover with Badge */}
                 <div className={styles.coverContainer}>
                     <Image
-                        src={book.coverUrl}
+                        src={book.coverUrl || '/images/book-placeholder.svg'}
                         alt={book.title}
                         width={300}
                         height={450}
                         className={styles.cover}
                         loading="lazy"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        unoptimized
+                        onError={(e) => {
+                            // Si la imagen falla, usar placeholder
+                            e.currentTarget.src = '/images/book-placeholder.svg';
+                        }}
                     />
                     {book.isFree && (
                         <span className={styles.freeBadge}>GRATIS</span>

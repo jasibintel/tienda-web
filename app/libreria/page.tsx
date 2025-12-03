@@ -4,15 +4,18 @@ import React, { useState, useEffect, useMemo } from 'react';
 import CatalogHero from '@/components/catalog/CatalogHero';
 import FilterBar from '@/components/catalog/FilterBar';
 import BooksGrid from '@/components/catalog/BooksGrid';
-import { featuredBooks, freeBooks } from '@/lib/mockData';
-import { filterBooks, getAllBooks, FilterOptions } from '@/lib/filterUtils';
+import { useBooks, useFilteredBooks } from '@/lib/hooks/useBooks';
+import { filterBooks, FilterOptions } from '@/lib/filterUtils';
 import { Book } from '@/lib/types';
 
 const BOOKS_PER_PAGE = 24;
 
 export default function CatalogPage() {
+    // Cargar libros desde Firestore
+    const { books: allBooksFromFirestore, loading: booksLoading, error: booksError } = useBooks();
+    
     // All books (memoized to prevent recalculation)
-    const allBooks = useMemo(() => getAllBooks(featuredBooks, freeBooks), []);
+    const allBooks = useMemo(() => allBooksFromFirestore || [], [allBooksFromFirestore]);
 
     // Filter state
     const [filters, setFilters] = useState<FilterOptions>({
@@ -66,6 +69,30 @@ export default function CatalogPage() {
 
     // Check if there are more books to load (only on client to avoid hydration mismatch)
     const hasMore = isClient && displayedBooks.length < filteredBooks.length && filteredBooks.length > BOOKS_PER_PAGE;
+
+    // Mostrar loading state
+    if (booksLoading && allBooks.length === 0) {
+        return (
+            <>
+                <CatalogHero />
+                <div style={{ padding: '48px', textAlign: 'center' }}>
+                    <p>Cargando libros...</p>
+                </div>
+            </>
+        );
+    }
+
+    // Mostrar error state
+    if (booksError) {
+        return (
+            <>
+                <CatalogHero />
+                <div style={{ padding: '48px', textAlign: 'center' }}>
+                    <p style={{ color: 'red' }}>Error al cargar libros: {booksError}</p>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>

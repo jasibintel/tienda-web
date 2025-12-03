@@ -9,14 +9,45 @@ import LearningPoints from '@/components/book-detail/LearningPoints';
 import TechnicalDetails from '@/components/book-detail/TechnicalDetails';
 import TargetAudience from '@/components/book-detail/TargetAudience';
 import RelatedBooks from '@/components/book-detail/RelatedBooks';
-import { getBookById, getRelatedBooks } from '@/lib/bookHelpers';
+import { useBook, useBooks } from '@/lib/hooks/useBooks';
 
 export default function BookDetailPage() {
     const params = useParams();
     const bookId = params.id as string;
 
-    // Get book data
-    const book = getBookById(bookId);
+    // Get book data from Firestore
+    const { book, loading, error } = useBook(bookId);
+    const { books: allBooks } = useBooks();
+
+    // Get related books (mismo autor o misma categoría)
+    const relatedBooks = React.useMemo(() => {
+        if (!book || !allBooks) return [];
+        return allBooks
+            .filter(b => b.id !== book.id && (b.category === book.category || b.author === book.author))
+            .slice(0, 8);
+    }, [book, allBooks]);
+
+    // Loading state
+    if (loading) {
+        return (
+            <div style={{ padding: '48px', textAlign: 'center' }}>
+                <p>Cargando libro...</p>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div style={{ padding: '48px', textAlign: 'center' }}>
+                <h1>Error al cargar el libro</h1>
+                <p>{error}</p>
+                <a href="/libreria" style={{ color: 'var(--color-primary-500)' }}>
+                    Volver al catálogo
+                </a>
+            </div>
+        );
+    }
 
     // Handle book not found
     if (!book) {
@@ -30,9 +61,6 @@ export default function BookDetailPage() {
             </div>
         );
     }
-
-    // Get related books
-    const relatedBooks = getRelatedBooks(book.id, book.category, 8);
 
     // Handlers
     const handlePurchase = () => {
