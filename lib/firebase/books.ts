@@ -57,27 +57,39 @@ export async function getAllBooks(): Promise<Book[]> {
 
         console.log('🔄 getAllBooks: Iniciando query...');
         
-        // Query simple sin orderBy para evitar problemas de índices
-        // Ordenaremos en el cliente que es más confiable
-        const q = query(
-            collection(db, BOOKS_COLLECTION),
-            where('isActive', '==', true)
-        );
+        // Primero intentar obtener todos los libros sin filtro para ver qué hay
+        console.log('🔄 getAllBooks: Obteniendo todos los libros (sin filtro isActive)...');
+        const allBooksQuery = query(collection(db, BOOKS_COLLECTION));
+        const allBooksSnapshot = await getDocs(allBooksQuery);
         
-        console.log('🔄 getAllBooks: Ejecutando query simple (sin orderBy)...');
-        console.log('🔄 getAllBooks: Esperando respuesta de Firestore...');
+        console.log(`📊 getAllBooks: Total de documentos en colección: ${allBooksSnapshot.docs.length}`);
         
-        const querySnapshot = await getDocs(q);
-        console.log('✅ getAllBooks: Query completada, procesando documentos...');
+        if (allBooksSnapshot.docs.length > 0) {
+            // Mostrar información del primer documento para diagnóstico
+            const firstDoc = allBooksSnapshot.docs[0];
+            const firstDocData = firstDoc.data();
+            console.log('📋 getAllBooks: Ejemplo de documento:', {
+                id: firstDoc.id,
+                title: firstDocData.title,
+                isActive: firstDocData.isActive,
+                hasIsActive: 'isActive' in firstDocData,
+                allFields: Object.keys(firstDocData)
+            });
+        }
         
-        const books = querySnapshot.docs.map((doc, index) => {
-            if (index < 3) {
-                console.log(`📖 Libro ${index + 1}: ${doc.data().title || 'Sin título'}`);
-            }
-            return docToBook(doc);
-        });
+        // Filtrar libros activos en el cliente (más flexible que el filtro de Firestore)
+        const books = allBooksSnapshot.docs
+            .map(doc => {
+                const data = doc.data();
+                // Si no tiene isActive o es true, incluirlo
+                if (data.isActive === undefined || data.isActive === true || data.isActive !== false) {
+                    return docToBook(doc);
+                }
+                return null;
+            })
+            .filter(book => book !== null) as Book[];
         
-        console.log(`✅ getAllBooks: ${books.length} libros encontrados y convertidos`);
+        console.log(`✅ getAllBooks: ${books.length} libros encontrados y convertidos (después de filtrar)`);
         
         // Ordenar por createdAt en el cliente (más confiable que depender de índices)
         const sortedBooks = books.sort((a, b) => {
