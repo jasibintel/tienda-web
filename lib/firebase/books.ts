@@ -56,13 +56,49 @@ export async function getAllBooks(): Promise<Book[]> {
         }
 
         console.log('🔄 getAllBooks: Iniciando query...');
+        console.log('🔍 getAllBooks: Información de diagnóstico:', {
+            dbInitialized: !!db,
+            collectionName: BOOKS_COLLECTION,
+            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+            hostname: typeof window !== 'undefined' ? window.location.hostname : 'server'
+        });
         
-        // Primero intentar obtener todos los libros sin filtro para ver qué hay
+        // Intentar obtener todos los libros sin filtro
         console.log('🔄 getAllBooks: Obteniendo todos los libros (sin filtro isActive)...');
+        console.log('🔄 getAllBooks: Ejecutando getDocs...');
+        
         const allBooksQuery = query(collection(db, BOOKS_COLLECTION));
-        const allBooksSnapshot = await getDocs(allBooksQuery);
+        
+        // Agregar timeout más corto para diagnóstico
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout: La query tardó más de 10 segundos')), 10000);
+        });
+        
+        let allBooksSnapshot;
+        try {
+            allBooksSnapshot = await Promise.race([
+                getDocs(allBooksQuery),
+                timeoutPromise
+            ]) as any;
+        } catch (timeoutError: any) {
+            console.error('❌ getAllBooks: Timeout o error en getDocs:', timeoutError);
+            console.error('❌ getAllBooks: Esto puede indicar:');
+            console.error('   1. Problema de permisos en Firestore');
+            console.error('   2. El dominio no está autorizado en Firebase');
+            console.error('   3. Las reglas de Firestore están bloqueando la lectura');
+            console.error('   4. Problema de conectividad con Firestore');
+            throw timeoutError;
+        }
         
         console.log(`📊 getAllBooks: Total de documentos en colección: ${allBooksSnapshot.docs.length}`);
+        
+        if (allBooksSnapshot.docs.length === 0) {
+            console.warn('⚠️ getAllBooks: La colección está vacía o no se pueden leer documentos');
+            console.warn('⚠️ getAllBooks: Verifica:');
+            console.warn('   1. Que los libros existan en Firestore Console');
+            console.warn('   2. Que las reglas de Firestore permitan lectura pública');
+            console.warn('   3. Que el proyecto de Firebase sea el correcto');
+        }
         
         if (allBooksSnapshot.docs.length > 0) {
             // Mostrar información del primer documento para diagnóstico
