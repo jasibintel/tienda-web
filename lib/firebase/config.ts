@@ -16,11 +16,9 @@ const firebaseConfig = {
     storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    // Analytics measurementId - opcional, puede causar problemas si no coincide
-    // Si hay problemas, podemos omitirlo temporalmente
-    ...(process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID && {
-        measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-    })
+    // measurementId OMITIDO - causa error 400 INVALID_ARGUMENT en Firebase Installations
+    // que bloquea la inicialización de Firestore. Se puede agregar más tarde cuando
+    // se resuelva el problema de configuración del Measurement ID.
 };
 
 // Validate that all required environment variables are set
