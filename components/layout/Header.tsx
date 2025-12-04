@@ -34,7 +34,7 @@ export default function Header() {
     const navLinks = [
         { href: '/libreria', label: 'Librería' },
         { href: '/colecciones', label: 'Colecciones' },
-        { href: '/gratis', label: 'Recursos' },
+        { href: '/gratis', label: 'Gratis' },
         { href: '/sobre-nosotros', label: 'Sobre Nosotros' }
     ];
 
