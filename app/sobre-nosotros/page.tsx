@@ -166,7 +166,7 @@ export default function AboutUsPage() {
 
                             <div className={styles.founderBio}>
                                 <p>
-                                    Soy pastor, maestro y apasionado por enseñar la Palabra de Dios. Nací el 6 de febrero de 1980 en Ibagué, Colombia, y durante más de 15 años he servido en el ministerio, acompañando a familias, jóvenes y creyentes en su crecimiento espiritual.
+                                    Hace más de 30 años emprendí un camino de servicio a Dios. A lo largo de este tiempo, Él ha formado mi vida, ha confirmado un llamado y ha puesto en mi corazón la responsabilidad de enseñar Su Palabra con claridad y sencillez. Este proyecto nace para bendecir a quienes desean conocerle más.
                                 </p>
                                 <p>
                                     Antes de comenzar los devocionales, por mucho tiempo sentí que Dios me llamaba a algo que no podía entender. No sabía qué era, pero sabía que debía prepararme.
