@@ -43,15 +43,41 @@ function docToCollection(docSnap: QueryDocumentSnapshot<DocumentData>): Collecti
 // Obtener todas las colecciones activas
 export async function getActiveCollections(): Promise<Collection[]> {
     try {
-        const q = query(
+        if (!db) {
+            const errorMsg = 'Firestore no está inicializado. Verifica las variables de entorno de Firebase.';
+            console.error('Error en getActiveCollections:', errorMsg);
+            throw new Error(errorMsg);
+        }
+
+        console.log('🔄 getActiveCollections: Iniciando query...');
+        
+        let q = query(
             collection(db, COLLECTIONS_COLLECTION),
-            where('isActive', '==', true),
-            orderBy('order', 'asc')
+            where('isActive', '==', true)
         );
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(docToCollection);
-    } catch (error) {
-        console.error('Error getting collections:', error);
+        
+        try {
+            // Intentar con orderBy
+            q = query(q, orderBy('order', 'asc'));
+            const querySnapshot = await getDocs(q);
+            console.log(`✅ getActiveCollections: ${querySnapshot.docs.length} colecciones encontradas`);
+            return querySnapshot.docs.map(docToCollection);
+        } catch (orderByError: any) {
+            if (orderByError.code === 'failed-precondition') {
+                console.warn('⚠️ Índice faltante para orderBy en collections, ordenando en el cliente');
+                const querySnapshot = await getDocs(query(
+                    collection(db, COLLECTIONS_COLLECTION),
+                    where('isActive', '==', true)
+                ));
+                const collections = querySnapshot.docs.map(docToCollection);
+                const sorted = collections.sort((a, b) => (a.order || 0) - (b.order || 0));
+                console.log(`✅ getActiveCollections: ${sorted.length} colecciones ordenadas en el cliente`);
+                return sorted;
+            }
+            throw orderByError;
+        }
+    } catch (error: any) {
+        console.error('❌ Error getting collections:', error);
         throw error;
     }
 }

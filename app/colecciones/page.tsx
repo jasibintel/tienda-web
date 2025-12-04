@@ -1,11 +1,13 @@
+'use client';
+
 import React from 'react';
 import CollectionsGrid from '@/components/collections/CollectionsGrid';
 import Button from '@/components/shared/Button';
-import { getActiveCollections } from '@/lib/mockCollections';
+import { useCollections } from '@/lib/hooks/useCollections';
 import styles from '@/styles/pages/Collections.module.css';
 
 export default function CollectionsPage() {
-    const collections = getActiveCollections();
+    const { collections, loading, error } = useCollections();
 
     return (
         <div className={styles.main}>
@@ -17,8 +19,30 @@ export default function CollectionsPage() {
                 </p>
             </section>
 
+            {/* Loading State */}
+            {loading && (
+                <div style={{ padding: '48px', textAlign: 'center' }}>
+                    <p>Cargando colecciones...</p>
+                </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+                <div style={{ padding: '48px', textAlign: 'center' }}>
+                    <p style={{ color: 'red', fontSize: '18px', fontWeight: 'bold' }}>
+                        Error al cargar colecciones
+                    </p>
+                    <p style={{ color: '#666', marginTop: '16px' }}>
+                        {error}
+                    </p>
+                    <p style={{ fontSize: '14px', color: '#999', marginTop: '24px' }}>
+                        Abre la consola del navegador (F12) para más detalles
+                    </p>
+                </div>
+            )}
+
             {/* Collections Grid */}
-            <CollectionsGrid collections={collections} />
+            {!loading && !error && <CollectionsGrid collections={collections} />}
 
             {/* CTAs */}
             <section className={styles.ctaSection}>
@@ -28,7 +52,7 @@ export default function CollectionsPage() {
                         <p className={styles.ctaDescription}>
                             Explora nuestro catálogo completo con todos los libros disponibles
                         </p>
-                        <Button variant="primary" href="/catalogo">
+                        <Button variant="primary" href="/libreria">
                             Ver catálogo completo
                         </Button>
                     </div>
@@ -38,7 +62,7 @@ export default function CollectionsPage() {
                         <p className={styles.ctaDescription}>
                             Accede a nuestra selección de recursos gratuitos para tu crecimiento espiritual
                         </p>
-                        <Button variant="secondary" href="/catalogo?filter=free">
+                        <Button variant="secondary" href="/gratis">
                             Ver libros gratuitos
                         </Button>
                     </div>

@@ -1,49 +1,85 @@
-import React from 'react';
-import { notFound } from 'next/navigation';
-import { getCollectionBySlug } from '@/lib/mockCollections';
-import { mockAdminBooks } from '@/lib/mockAdminData';
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useCollectionBySlug } from '@/lib/hooks/useCollections';
+import { useBooks } from '@/lib/hooks/useBooks';
 import BookCard from '@/components/shared/BookCard';
 import Button from '@/components/shared/Button';
 import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import styles from '@/styles/pages/CollectionDetail.module.css';
 
-interface CollectionDetailPageProps {
-    params: Promise<{
-        slug: string;
-    }>;
-}
+export default function CollectionDetailPage() {
+    const params = useParams();
+    const router = useRouter();
+    const slug = params.slug as string;
+    const { collection, loading: collectionLoading, error: collectionError } = useCollectionBySlug(slug);
+    const { books: allBooks, loading: booksLoading } = useBooks();
+    const [collectionBooks, setCollectionBooks] = useState<any[]>([]);
 
-export default async function CollectionDetailPage({ params }: CollectionDetailPageProps) {
-    const { slug } = await params;
-    const collection = getCollectionBySlug(slug);
+    // Filtrar libros de la colección cuando ambos datos estén disponibles
+    useEffect(() => {
+        if (collection && allBooks.length > 0) {
+            const filtered = allBooks.filter(book =>
+                collection.books.includes(book.id)
+            );
+            setCollectionBooks(filtered);
+        }
+    }, [collection, allBooks]);
 
-    if (!collection) {
-        notFound();
+    // Loading state
+    if (collectionLoading || booksLoading) {
+        return (
+            <div className={styles.container}>
+                <div style={{ padding: '48px', textAlign: 'center' }}>
+                    <p>Cargando colección...</p>
+                </div>
+            </div>
+        );
     }
 
-    // Get books for this collection
-    const collectionBooks = mockAdminBooks.filter(book =>
-        collection.books.includes(book.id)
-    );
+    // Error state
+    if (collectionError || !collection) {
+        return (
+            <div className={styles.container}>
+                <div style={{ padding: '48px', textAlign: 'center' }}>
+                    <p style={{ color: 'red', fontSize: '18px', fontWeight: 'bold' }}>
+                        Colección no encontrada
+                    </p>
+                    <p style={{ color: '#666', marginTop: '16px' }}>
+                        {collectionError || 'La colección que buscas no existe o no está disponible.'}
+                    </p>
+                    <div style={{ marginTop: '24px' }}>
+                        <Button variant="secondary" href="/colecciones">
+                            <ArrowLeft size={16} />
+                            Volver a colecciones
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.container}>
             {/* Hero Banner */}
             <section className={styles.hero}>
                 <div className={styles.heroBanner}>
-                    <Image
-                        src={collection.bannerUrl}
-                        alt={collection.name}
-                        fill
-                        className={styles.heroImage}
-                        priority
-                    />
+                    {collection.bannerUrl && (
+                        <Image
+                            src={collection.bannerUrl}
+                            alt={collection.name}
+                            fill
+                            className={styles.heroImage}
+                            priority
+                        />
+                    )}
                     <div className={styles.heroOverlay}>
                         <div className={styles.heroContent}>
                             <h1 className={styles.heroTitle}>{collection.name}</h1>
                             <p className={styles.heroSubtitle}>
-                                Colección de {collection.books.length} {collection.books.length === 1 ? 'libro' : 'libros'}
+                                Colección de {collectionBooks.length} {collectionBooks.length === 1 ? 'libro' : 'libros'}
                             </p>
                         </div>
                     </div>
@@ -109,7 +145,7 @@ export default async function CollectionDetailPage({ params }: CollectionDetailP
                         <p className={styles.ctaDescription}>
                             Explora todos nuestros libros disponibles
                         </p>
-                        <Button variant="primary" href="/catalogo">
+                        <Button variant="primary" href="/libreria">
                             Ir al catálogo
                         </Button>
                     </div>
