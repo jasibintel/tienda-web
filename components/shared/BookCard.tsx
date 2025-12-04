@@ -45,7 +45,7 @@ function BookCard({ book, onButtonClick }: BookCardProps) {
     return (
         <div className={styles.cardWrapper}>
             <Link href={`/libreria/${book.id}`} className={styles.card} onClick={handleClick}>
-                {/* Cover with Badge */}
+                {/* Cover with Badges */}
                 <div className={styles.coverContainer}>
                     <Image
                         src={book.coverUrl || '/images/book-placeholder.svg'}
@@ -61,9 +61,15 @@ function BookCard({ book, onButtonClick }: BookCardProps) {
                             e.currentTarget.src = '/images/book-placeholder.svg';
                         }}
                     />
-                    {book.isFree && (
-                        <span className={styles.freeBadge}>GRATIS</span>
-                    )}
+                    <div className={styles.badges}>
+                        {book.isFree && (
+                            <span className={styles.freeBadge}>GRATIS</span>
+                        )}
+                        {book.featured && (
+                            <span className={styles.featuredBadge}>DESTACADO</span>
+                        )}
+                        <span className={styles.digitalBadge}>Digital</span>
+                    </div>
                 </div>
 
                 {/* Content */}
@@ -85,9 +91,9 @@ function BookCard({ book, onButtonClick }: BookCardProps) {
                         )}
                     </div>
 
-                    {/* Text Link */}
-                    <div className={styles.actionLink}>
-                        {book.isFree ? 'Descargar' : 'Ver detalles'} →
+                    {/* Action Button */}
+                    <div className={styles.actionButton}>
+                        {book.isFree ? 'Descargar' : 'Ver detalles'}
                     </div>
                 </div>
             </Link>

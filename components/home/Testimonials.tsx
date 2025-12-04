@@ -47,12 +47,17 @@ export default function Testimonials() {
                             {testimonials[currentIndex].quote}
                         </blockquote>
                         <div className={styles.author}>
-                            <p className={styles.authorName}>
-                                {testimonials[currentIndex].authorName}
-                            </p>
-                            <p className={styles.authorLocation}>
-                                {testimonials[currentIndex].authorLocation}
-                            </p>
+                            <div className={styles.authorAvatar}>
+                                {testimonials[currentIndex].authorName.charAt(0)}
+                            </div>
+                            <div className={styles.authorInfo}>
+                                <p className={styles.authorName}>
+                                    {testimonials[currentIndex].authorName}
+                                </p>
+                                <p className={styles.authorLocation}>
+                                    {testimonials[currentIndex].authorLocation}
+                                </p>
+                            </div>
                         </div>
                     </div>
 

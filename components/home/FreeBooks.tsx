@@ -22,8 +22,7 @@ export default function FreeBooks() {
                         <span className={styles.badge}>100% Gratuito</span>
                         <h2 className={styles.title}>Recursos Premium Sin Costo</h2>
                         <p className={styles.description}>
-                            Accede a contenido exclusivo diseñado para fortalecer tu fe y equiparte
-                            para el ministerio. Sin tarjetas de crédito, sin compromisos.
+                            Contenido exclusivo para fortalecer tu fe. Sin tarjetas, sin compromisos.
                         </p>
                     </div>
 

@@ -15,10 +15,11 @@
 
 .title {
     font-family: var(--font-heading);
-    font-size: 28px;
-    font-weight: 600;
+    font-size: 36px;
+    font-weight: 700;
     color: var(--color-neutral-900);
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-sm);
+    letter-spacing: -0.5px;
 }
 
 .subtitle {
@@ -36,10 +37,10 @@
 }
 
 .card {
-    background: var(--color-neutral-0);
-    border: 2px solid transparent;
+    background: linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 100%);
+    border: 1px solid var(--color-neutral-200);
     border-radius: var(--radius-lg);
-    padding: var(--space-xl);
+    padding: var(--space-2xl);
     text-align: center;
     transition: all var(--transition-base) var(--ease-out);
     cursor: pointer;
@@ -47,8 +48,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 200px;
+    min-height: 220px;
     justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .card:hover {
@@ -58,9 +60,15 @@
 }
 
 .iconContainer {
-    color: var(--color-secondary-500);
-    margin-bottom: var(--space-md);
+    color: var(--color-primary-600);
+    margin-bottom: var(--space-lg);
     transition: transform var(--transition-base) var(--ease-out);
+    background: var(--color-primary-50);
+    padding: var(--space-md);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .card:hover .iconContainer {
@@ -77,8 +85,10 @@
 
 .bookCount {
     font-family: var(--font-body);
-    font-size: 14px;
-    color: var(--color-neutral-500);
+    font-size: 13px;
+    color: var(--color-neutral-600);
+    font-weight: 500;
+    margin-top: var(--space-xs);
 }
 
 /* Responsive */

@@ -12,23 +12,16 @@ export default function Hero() {
             <div className={styles.container}>
                 {/* Left Side - Content (60%) */}
                 <div className={styles.content}>
-                    <div className={styles.badge}>
-                        <span className={styles.badgeIcon}>✨</span>
-                        <span>Recursos que transforman vidas</span>
-                    </div>
-
                     <h1 className={styles.title}>
-                        Recursos que edifican tu fe y ministerio
+                        Recursos que transforman vidas
                     </h1>
 
                     <p className={styles.subtitle}>
-                        Descubre una colección cuidadosamente seleccionada de libros digitales,
-                        devocionales y recursos teológicos diseñados para profundizar tu caminar
-                        con Dios y fortalecer tu ministerio.
+                        Libros digitales y devocionales diseñados para profundizar tu caminar con Dios
                     </p>
 
                     <div className={styles.actions}>
-                        <Link href="/catalogo" className={styles.primaryButton}>
+                        <Link href="/libreria" className={styles.primaryButton}>
                             <span>Explorar Librería</span>
                             <ArrowRight size={20} />
                         </Link>

@@ -19,8 +19,7 @@ export default function FeaturedBooks() {
                         <span className={styles.label}>Selección Curada</span>
                         <h2 className={styles.title}>Libros que Transforman Vidas</h2>
                         <p className={styles.description}>
-                            Cada libro ha sido cuidadosamente seleccionado por su profundidad teológica
-                            y su capacidad para edificar tu fe.
+                            Libros seleccionados por su profundidad teológica y capacidad para edificar tu fe.
                         </p>
                     </div>
                     <Link href="/catalogo" className={styles.viewAll}>

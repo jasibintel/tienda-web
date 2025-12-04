@@ -27,7 +27,7 @@ export default function Footer() {
                                 Únete a nuestra comunidad de lectores
                             </h3>
                             <p className={styles.newsletterSubtitle}>
-                                Recibe recursos exclusivos y novedades directamente en tu correo
+                                Recibe 1 devocional gratis al mes y recursos exclusivos directamente en tu correo
                             </p>
                         </div>
                         <form className={styles.newsletterForm} onSubmit={handleNewsletterSubmit}>
@@ -56,7 +56,7 @@ export default function Footer() {
                         <div className={styles.column}>
                             <h2 className={styles.brandLogo}>De Gloria en Gloria</h2>
                             <p className={styles.brandDescription}>
-                                Recursos que edifican tu fe y fortalecen tu ministerio.
+                                Recursos que edifican tu fe.
                             </p>
                         </div>
 
