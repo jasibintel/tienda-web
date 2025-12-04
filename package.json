@@ -13,7 +13,10 @@
     "firebase:deploy:rules": "firebase deploy --only firestore:rules,storage:rules",
     "firebase:deploy:firestore": "firebase deploy --only firestore:rules",
     "firebase:deploy:storage": "firebase deploy --only storage:rules",
-    "firebase:deploy:hosting": "firebase deploy --only hosting"
+    "firebase:deploy:hosting": "firebase deploy --only hosting",
+    "deploy:all": "node scripts/deploy.js",
+    "deploy:github": "git add -A && git commit -m 'chore: Actualizar proyecto' && git push",
+    "deploy:vercel": "vercel --prod"
   },
   "dependencies": {
     "firebase": "^12.6.0",
