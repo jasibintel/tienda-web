@@ -22,7 +22,14 @@ export default function CheckoutPage() {
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'online-simulated' | 'manual' | null>(null);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'online-simulated' | 'manual' | 'stripe' | 'wompi' | null>(null);
+    
+    // Handler para cambiar método de pago (solo permite online-simulated y manual por ahora)
+    const handlePaymentMethodChange = (method: 'online-simulated' | 'manual' | 'stripe' | 'wompi') => {
+        if (method === 'online-simulated' || method === 'manual') {
+            setSelectedPaymentMethod(method);
+        }
+    };
     const [isGift, setIsGift] = useState(false);
     const [recipientEmail, setRecipientEmail] = useState('');
     const [processing, setProcessing] = useState(false);
@@ -193,7 +200,7 @@ export default function CheckoutPage() {
                 <div className={styles.rightColumn}>
                     <PaymentMethod
                         selectedMethod={selectedPaymentMethod}
-                        onMethodChange={setSelectedPaymentMethod}
+                        onMethodChange={handlePaymentMethodChange}
                         orderId={orderId}
                     />
 
