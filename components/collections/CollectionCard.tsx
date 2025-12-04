@@ -1,8 +1,9 @@
+'use client';
+
 import React from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Collection } from '@/lib/types';
-import Button from '../shared/Button';
 import { ArrowRight, Book } from 'lucide-react';
 import styles from '@/styles/components/CollectionCard.module.css';
 
@@ -11,25 +12,38 @@ interface CollectionCardProps {
 }
 
 export default function CollectionCard({ collection }: CollectionCardProps) {
-    const bookCount = collection.books.length;
+    const router = useRouter();
+    const bookCount = collection.books?.length || 0;
+
+    const handleClick = () => {
+        if (collection.slug) {
+            router.push(`/colecciones/${collection.slug}`);
+        }
+    };
 
     return (
-        <Link href={`/colecciones/${collection.slug}`} className={styles.card}>
+        <div className={styles.card} onClick={handleClick} style={{ cursor: 'pointer' }}>
             {/* Banner Image */}
             <div className={styles.bannerWrapper}>
-                <Image
-                    src={collection.bannerUrl}
-                    alt={collection.name}
-                    width={600}
-                    height={338}
-                    className={styles.banner}
-                />
+                {collection.bannerUrl ? (
+                    <Image
+                        src={collection.bannerUrl}
+                        alt={collection.name}
+                        width={600}
+                        height={338}
+                        className={styles.banner}
+                    />
+                ) : (
+                    <div className={styles.bannerPlaceholder}>
+                        <Book size={48} />
+                    </div>
+                )}
             </div>
 
             {/* Content */}
             <div className={styles.content}>
                 <h3 className={styles.name}>{collection.name}</h3>
-                <p className={styles.description}>{collection.descriptionShort}</p>
+                <p className={styles.description}>{collection.descriptionShort || collection.descriptionLong || ''}</p>
 
                 <div className={styles.meta}>
                     <span className={styles.bookCount}>
@@ -38,11 +52,11 @@ export default function CollectionCard({ collection }: CollectionCardProps) {
                     </span>
                 </div>
 
-                <Button variant="secondary" className={styles.button}>
+                <div className={styles.button}>
                     Explorar colección
                     <ArrowRight size={16} />
-                </Button>
+                </div>
             </div>
-        </Link>
+        </div>
     );
 }

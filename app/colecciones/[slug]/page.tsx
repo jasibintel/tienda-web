@@ -110,21 +110,32 @@ export default function CollectionDetailPage() {
             {/* Books Grid */}
             <section className={styles.booksSection}>
                 <h2 className={styles.booksTitle}>Libros de esta colección</h2>
-                <div className={styles.booksGrid}>
-                    {collectionBooks.map((book, index) => (
-                        <div key={book.id} className={styles.bookWrapper}>
-                            {collection.hasReadingOrder && (
-                                <div className={styles.bookOrder}>
-                                    <span className={styles.orderNumber}>{index + 1}</span>
-                                    <span className={styles.orderLabel}>
-                                        Libro {index + 1} de {collectionBooks.length}
-                                    </span>
-                                </div>
-                            )}
-                            <BookCard book={book} />
-                        </div>
-                    ))}
-                </div>
+                {collectionBooks.length === 0 ? (
+                    <div style={{ padding: '48px', textAlign: 'center' }}>
+                        <p style={{ color: '#666', fontSize: '16px' }}>
+                            Esta colección aún no tiene libros asignados.
+                        </p>
+                        <p style={{ color: '#999', fontSize: '14px', marginTop: '8px' }}>
+                            Los libros se mostrarán aquí cuando se agreguen a la colección.
+                        </p>
+                    </div>
+                ) : (
+                    <div className={styles.booksGrid}>
+                        {collectionBooks.map((book, index) => (
+                            <div key={book.id} className={styles.bookWrapper}>
+                                {collection.hasReadingOrder && (
+                                    <div className={styles.bookOrder}>
+                                        <span className={styles.orderNumber}>{index + 1}</span>
+                                        <span className={styles.orderLabel}>
+                                            Libro {index + 1} de {collectionBooks.length}
+                                        </span>
+                                    </div>
+                                )}
+                                <BookCard book={book} />
+                            </div>
+                        ))}
+                    </div>
+                )}
             </section>
 
             {/* CTAs */}
