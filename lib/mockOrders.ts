@@ -21,7 +21,7 @@ export function calculateOrderTotals(items: OrderItem[]): {
 export const mockOrders: Order[] = [
     {
         id: 'order-001',
-        userId: 'mock-user-1',
+        buyerId: 'mock-user-1',
         items: [
             {
                 bookId: '1',
@@ -48,12 +48,14 @@ export const mockOrders: Order[] = [
         tax: 14630,
         total: 91630,
         status: 'pending',
+        isGift: false,
+        recipientEmail: null,
         createdAt: '2024-12-02T20:00:00Z',
         updatedAt: '2024-12-02T20:00:00Z'
     },
     {
         id: 'order-002',
-        userId: 'mock-user-1',
+        buyerId: 'mock-user-1',
         items: [
             {
                 bookId: '3',
@@ -70,12 +72,14 @@ export const mockOrders: Order[] = [
         tax: 7220,
         total: 45220,
         status: 'pending',
+        isGift: false,
+        recipientEmail: null,
         createdAt: '2024-12-02T19:30:00Z',
         updatedAt: '2024-12-02T19:30:00Z'
     },
     {
         id: 'order-003',
-        userId: 'mock-user-1',
+        buyerId: 'mock-user-1',
         items: [
             {
                 bookId: '4',
@@ -94,6 +98,8 @@ export const mockOrders: Order[] = [
         status: 'paid',
         paymentMethod: 'stripe',
         paymentIntentId: 'pi_mock_123',
+        isGift: false,
+        recipientEmail: null,
         createdAt: '2024-12-01T15:00:00Z',
         updatedAt: '2024-12-01T15:05:00Z',
         paidAt: '2024-12-01T15:05:00Z'
@@ -105,8 +111,8 @@ export function getOrderById(orderId: string): Order | null {
     return mockOrders.find(order => order.id === orderId) || null;
 }
 
-export function getUserOrders(userId: string): Order[] {
-    return mockOrders.filter(order => order.userId === userId);
+export function getUserOrders(buyerId: string): Order[] {
+    return mockOrders.filter(order => order.buyerId === buyerId);
 }
 
 export function formatCurrency(amount: number): string {
