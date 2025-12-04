@@ -1,100 +1,181 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/library/PageHeader';
 import NotAuthenticatedState from '@/components/library/NotAuthenticatedState';
 import EmptyLibraryState from '@/components/library/EmptyLibraryState';
 import LibraryFilters from '@/components/library/LibraryFilters';
 import LibraryCard from '@/components/library/LibraryCard';
-import {
-    mockUserLibrary,
-    getUserLibrary,
-    filterUserLibrary,
-    sortUserLibrary
-} from '@/lib/mockUserLibrary';
-import { UserLibraryItem } from '@/lib/types';
+import { getUserLibraryWithBooks } from '@/lib/firebase/library';
+import { useAuth } from '@/lib/context/AuthContext';
+import { Book } from '@/lib/types';
+import Image from 'next/image';
+import { Download } from 'lucide-react';
 import styles from '@/styles/pages/Library.module.css';
 
-// Mock Auth Hook (simulated)
-const useMockAuth = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [user, setUser] = useState<{ uid: string } | null>(null);
-
-    const login = () => {
-        setIsAuthenticated(true);
-        setUser({ uid: 'mock-user-1' });
-    };
-
-    const logout = () => {
-        setIsAuthenticated(false);
-        setUser(null);
-    };
-
-    return { isAuthenticated, user, login, logout };
-};
+interface LibraryItemWithBook {
+    bookId: string;
+    grantedAt: string;
+    source: 'order' | 'manual';
+    orderId: string | null;
+    book: Book | null;
+}
 
 export default function LibraryPage() {
-    const { isAuthenticated, user, login, logout } = useMockAuth();
-    const [libraryItems, setLibraryItems] = useState<UserLibraryItem[]>([]);
-    const [filteredItems, setFilteredItems] = useState<UserLibraryItem[]>([]);
+    const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
+    const [libraryItems, setLibraryItems] = useState<LibraryItemWithBook[]>([]);
+    const [filteredItems, setFilteredItems] = useState<LibraryItemWithBook[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     // Filter & Sort State
     const [activeFilter, setActiveFilter] = useState<'all' | 'paid' | 'free'>('all');
     const [sortBy, setSortBy] = useState<'recent' | 'title-asc' | 'title-desc' | 'author'>('recent');
 
-    // Load library items when authenticated
+    // Load library items from Firestore
     useEffect(() => {
-        if (isAuthenticated && user) {
-            const items = getUserLibrary(user.uid);
-            setLibraryItems(items);
-        } else {
-            setLibraryItems([]);
+        const loadLibrary = async () => {
+            if (!user) {
+                setLibraryItems([]);
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                setError(null);
+                const items = await getUserLibraryWithBooks(user.uid);
+                setLibraryItems(items);
+            } catch (err: any) {
+                console.error('Error loading library:', err);
+                setError(err.message || 'Error al cargar la biblioteca');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (!authLoading) {
+            loadLibrary();
         }
-    }, [isAuthenticated, user]);
+    }, [user, authLoading]);
 
     // Apply filters and sort
     useEffect(() => {
-        let result = filterUserLibrary(libraryItems, activeFilter);
-        result = sortUserLibrary(result, sortBy);
+        let result = libraryItems.filter(item => {
+            if (!item.book) return false;
+            if (activeFilter === 'paid') return !item.book.isFree;
+            if (activeFilter === 'free') return item.book.isFree;
+            return true;
+        });
+
+        // Sort
+        result = [...result].sort((a, b) => {
+            if (!a.book || !b.book) return 0;
+            
+            switch (sortBy) {
+                case 'recent':
+                    return new Date(b.grantedAt).getTime() - new Date(a.grantedAt).getTime();
+                case 'title-asc':
+                    return a.book.title.localeCompare(b.book.title);
+                case 'title-desc':
+                    return b.book.title.localeCompare(a.book.title);
+                case 'author':
+                    return a.book.author.localeCompare(b.book.author);
+                default:
+                    return 0;
+            }
+        });
+
         setFilteredItems(result);
     }, [libraryItems, activeFilter, sortBy]);
 
     // Handlers
-    const handleDownload = (item: UserLibraryItem, format: 'pdf' | 'epub') => {
-        // Mock download logic
-        alert(`Descargando ${item.title} en formato ${format.toUpperCase()}...`);
-        console.log(`Downloading book ${item.bookId} format ${format}`);
-    };
-
-    // Dev toggle for testing empty state
-    const toggleEmptyState = () => {
-        if (libraryItems.length > 0) {
-            setLibraryItems([]);
-        } else if (user) {
-            setLibraryItems(getUserLibrary(user.uid));
+    const handleDownload = (item: LibraryItemWithBook, format: 'pdf' | 'epub') => {
+        if (!item.book) return;
+        
+        // Por ahora, usar downloadUrl si existe
+        if (item.book.downloadUrl) {
+            window.open(item.book.downloadUrl, '_blank');
+        } else {
+            alert(`Descargando ${item.book.title} en formato ${format.toUpperCase()}...`);
+            console.log(`Downloading book ${item.bookId} format ${format}`);
         }
     };
+
+    // Convert LibraryItemWithBook to UserLibraryItem format for LibraryCard
+    const convertToUserLibraryItem = (item: LibraryItemWithBook) => {
+        if (!item.book) return null;
+        
+        return {
+            id: item.bookId,
+            userId: user?.uid || '',
+            bookId: item.bookId,
+            title: item.book.title,
+            author: item.book.author,
+            coverUrl: item.book.coverUrl,
+            isFree: item.book.isFree,
+            downloadUrls: {
+                pdf: item.book.downloadUrl,
+                epub: item.book.downloadUrl
+            },
+            acquiredAt: item.grantedAt,
+            downloadCount: 0,
+            lastDownloadedAt: undefined
+        };
+    };
+
+    if (authLoading || loading) {
+        return (
+            <main className={styles.main}>
+                <PageHeader />
+                <div className={styles.content}>
+                    <div style={{ padding: '48px', textAlign: 'center' }}>
+                        <p>Cargando tu biblioteca...</p>
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
+    if (!user) {
+        return (
+            <main className={styles.main}>
+                <PageHeader />
+                <div className={styles.content}>
+                    <NotAuthenticatedState onLoginClick={() => router.push('/auth/login')} />
+                </div>
+            </main>
+        );
+    }
+
+    if (error) {
+        return (
+            <main className={styles.main}>
+                <PageHeader />
+                <div className={styles.content}>
+                    <div style={{ padding: '48px', textAlign: 'center' }}>
+                        <p style={{ color: 'red', fontSize: '18px', fontWeight: 'bold' }}>
+                            Error al cargar la biblioteca
+                        </p>
+                        <p style={{ color: '#666', marginTop: '16px' }}>{error}</p>
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
+    const validItems = filteredItems
+        .map(convertToUserLibraryItem)
+        .filter((item): item is NonNullable<typeof item> => item !== null);
 
     return (
         <main className={styles.main}>
             <PageHeader />
 
-            {/* Dev Controls (Hidden in production, visible for demo) */}
-            <div className={styles.devControls}>
-                <button onClick={isAuthenticated ? logout : login} className={styles.devButton}>
-                    {isAuthenticated ? 'Simular Logout' : 'Simular Login'}
-                </button>
-                {isAuthenticated && (
-                    <button onClick={toggleEmptyState} className={styles.devButton}>
-                        {libraryItems.length > 0 ? 'Simular Sin Libros' : 'Simular Con Libros'}
-                    </button>
-                )}
-            </div>
-
             <div className={styles.content}>
-                {!isAuthenticated ? (
-                    <NotAuthenticatedState onLoginClick={login} />
-                ) : libraryItems.length === 0 ? (
+                {validItems.length === 0 ? (
                     <EmptyLibraryState />
                 ) : (
                     <>
@@ -103,16 +184,21 @@ export default function LibraryPage() {
                             onFilterChange={setActiveFilter}
                             sortBy={sortBy}
                             onSortChange={setSortBy}
-                            count={filteredItems.length}
+                            count={validItems.length}
                         />
 
                         <div className={styles.gridContainer}>
                             <div className={styles.grid}>
-                                {filteredItems.map((item) => (
+                                {validItems.map((item) => (
                                     <LibraryCard
                                         key={item.id}
                                         item={item}
-                                        onDownload={handleDownload}
+                                        onDownload={(item, format) => {
+                                            const originalItem = filteredItems.find(i => i.bookId === item.bookId);
+                                            if (originalItem) {
+                                                handleDownload(originalItem, format);
+                                            }
+                                        }}
                                     />
                                 ))}
                             </div>

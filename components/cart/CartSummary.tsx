@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import styles from '@/styles/components/CartSummary.module.css';
 
@@ -9,9 +8,11 @@ interface CartSummaryProps {
     subtotal: number;
     total: number;
     itemCount: number;
+    onCheckout?: () => void;
+    loading?: boolean;
 }
 
-export default function CartSummary({ subtotal, total, itemCount }: CartSummaryProps) {
+export default function CartSummary({ subtotal, total, itemCount, onCheckout, loading = false }: CartSummaryProps) {
     return (
         <div className={styles.summary}>
             <h2 className={styles.title}>Resumen del Pedido</h2>
@@ -35,10 +36,14 @@ export default function CartSummary({ subtotal, total, itemCount }: CartSummaryP
                 </div>
             </div>
 
-            <Link href="/checkout" className={styles.checkoutButton}>
-                <span>Proceder al Pago</span>
-                <ArrowRight size={20} />
-            </Link>
+            <button
+                onClick={onCheckout}
+                disabled={loading || !onCheckout}
+                className={styles.checkoutButton}
+            >
+                <span>{loading ? 'Procesando...' : 'Proceder al Pago'}</span>
+                {!loading && <ArrowRight size={20} />}
+            </button>
 
             <p className={styles.note}>
                 Los libros digitales se enviarán a tu correo electrónico inmediatamente después del pago.

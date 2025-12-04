@@ -97,15 +97,17 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
-  userId: string;
+  buyerId: string; // Changed from userId for clarity
   items: OrderItem[];
   subtotal: number;
   tax: number;
   total: number;
-  status: 'pending' | 'processing' | 'paid' | 'failed' | 'cancelled';
-  paymentMethod?: 'stripe' | 'wompi';
+  status: 'pending' | 'paid' | 'cancelled';
+  paymentMethod?: 'online-simulated' | 'manual' | 'stripe' | 'wompi';
   paymentIntentId?: string;
-  createdAt: string; // ISO date string for mock data
+  isGift: boolean;
+  recipientEmail: string | null;
+  createdAt: string; // ISO date string
   updatedAt: string;
   paidAt?: string;
 }
@@ -123,4 +125,11 @@ export interface Collection {
   hasReadingOrder?: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LibraryEntry {
+  bookId: string;
+  grantedAt: string; // ISO date
+  source: 'order' | 'manual';
+  orderId: string | null;
 }

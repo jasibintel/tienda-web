@@ -17,6 +17,7 @@ interface ProductHeroProps {
     formats: string[];
     onPurchase?: () => void;
     onDownload?: () => void;
+    onAddToCart?: () => void;
 }
 
 export default function ProductHero({
@@ -29,7 +30,8 @@ export default function ProductHero({
     isFree,
     formats,
     onPurchase,
-    onDownload
+    onDownload,
+    onAddToCart
 }: ProductHeroProps) {
     return (
         <section className={styles.hero}>
@@ -90,6 +92,16 @@ export default function ProductHero({
                         >
                             {isFree ? 'Descargar gratis' : 'Comprar ahora'}
                         </Button>
+
+                        {!isFree && onAddToCart && (
+                            <Button
+                                variant="secondary"
+                                onClick={onAddToCart}
+                                className={styles.secondaryButton}
+                            >
+                                Añadir al carrito
+                            </Button>
+                        )}
 
                         <p className={styles.deliveryMessage}>
                             {isFree

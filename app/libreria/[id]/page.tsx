@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Breadcrumbs from '@/components/book-detail/Breadcrumbs';
 import ProductHero from '@/components/book-detail/ProductHero';
 import BookDescription from '@/components/book-detail/BookDescription';
@@ -10,14 +10,17 @@ import TechnicalDetails from '@/components/book-detail/TechnicalDetails';
 import TargetAudience from '@/components/book-detail/TargetAudience';
 import RelatedBooks from '@/components/book-detail/RelatedBooks';
 import { useBook, useBooks } from '@/lib/hooks/useBooks';
+import { useCart } from '@/lib/context/CartContext';
 
 export default function BookDetailPage() {
     const params = useParams();
+    const router = useRouter();
     const bookId = params.id as string;
 
     // Get book data from Firestore
     const { book, loading, error } = useBook(bookId);
     const { books: allBooks } = useBooks();
+    const { addToCart, clearCart } = useCart();
 
     // Get related books (mismo autor o misma categoría)
     const relatedBooks = React.useMemo(() => {
@@ -63,10 +66,19 @@ export default function BookDetailPage() {
     }
 
     // Handlers
+    const handleAddToCart = () => {
+        if (!book) return;
+        addToCart(book);
+        alert('Libro añadido al carrito');
+    };
+
     const handlePurchase = () => {
-        console.log('Purchase book:', book.id);
-        // TODO: Implement purchase flow
-        alert('Funcionalidad de compra próximamente');
+        if (!book) return;
+        // Limpiar carrito y agregar solo este libro
+        clearCart();
+        addToCart(book);
+        // Redirigir al carrito
+        router.push('/carrito');
     };
 
     const handleDownload = () => {
@@ -90,6 +102,7 @@ export default function BookDetailPage() {
                 formats={book.formats}
                 onPurchase={handlePurchase}
                 onDownload={handleDownload}
+                onAddToCart={handleAddToCart}
             />
 
             {book.descriptionLong && (
