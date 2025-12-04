@@ -5,15 +5,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { UserLibraryItem } from '@/lib/types';
 import Button from '../shared/Button';
-import { Download, ArrowRight } from 'lucide-react';
+import { Download, ArrowRight, Video } from 'lucide-react';
 import styles from '@/styles/components/library/LibraryCard.module.css';
 
 interface LibraryCardProps {
     item: UserLibraryItem;
     onDownload: (item: UserLibraryItem, format: 'pdf' | 'epub') => void;
+    hasResources?: boolean;
 }
 
-export default function LibraryCard({ item, onDownload }: LibraryCardProps) {
+export default function LibraryCard({ item, onDownload, hasResources = false }: LibraryCardProps) {
     // Format date
     const acquiredDate = new Date(item.acquiredAt).toLocaleDateString('es-CO', {
         year: 'numeric',
@@ -63,6 +64,13 @@ export default function LibraryCard({ item, onDownload }: LibraryCardProps) {
                             <Download size={16} />
                             Descargar EPUB
                         </Button>
+                    )}
+
+                    {hasResources && (
+                        <Link href={`/mi-biblioteca/${item.bookId}/recursos`} className={styles.resourcesLink}>
+                            <Video size={16} />
+                            Ver contenido extra
+                        </Link>
                     )}
 
                     <Link href={`/libreria/${item.bookId}`} className={styles.detailsLink}>

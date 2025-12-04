@@ -8,6 +8,7 @@ import EmptyLibraryState from '@/components/library/EmptyLibraryState';
 import LibraryFilters from '@/components/library/LibraryFilters';
 import LibraryCard from '@/components/library/LibraryCard';
 import { getUserLibraryWithBooks } from '@/lib/firebase/library';
+import { checkBookHasResources } from '@/lib/firebase/bookResources';
 import { useAuth } from '@/lib/context/AuthContext';
 import { Book } from '@/lib/types';
 import Image from 'next/image';
@@ -20,6 +21,7 @@ interface LibraryItemWithBook {
     source: 'order' | 'manual';
     orderId: string | null;
     book: Book | null;
+    hasResources?: boolean;
 }
 
 export default function LibraryPage() {
@@ -46,8 +48,24 @@ export default function LibraryPage() {
             try {
                 setLoading(true);
                 setError(null);
-                const items = await getUserLibraryWithBooks(user.uid);
-                setLibraryItems(items);
+                const libraryWithBooks = await getUserLibraryWithBooks(user.uid);
+                
+                // Verificar recursos para cada libro
+                const itemsWithResources = await Promise.all(
+                    libraryWithBooks.map(async (entry) => {
+                        const hasResources = entry.book ? await checkBookHasResources(entry.bookId) : false;
+                        return {
+                            bookId: entry.bookId,
+                            grantedAt: entry.grantedAt,
+                            source: entry.source,
+                            orderId: entry.orderId,
+                            book: entry.book,
+                            hasResources
+                        };
+                    })
+                );
+                
+                setLibraryItems(itemsWithResources);
             } catch (err: any) {
                 console.error('Error loading library:', err);
                 setError(err.message || 'Error al cargar la biblioteca');
@@ -122,7 +140,8 @@ export default function LibraryPage() {
             },
             acquiredAt: item.grantedAt,
             downloadCount: 0,
-            lastDownloadedAt: undefined
+            lastDownloadedAt: undefined,
+            hasResources: item.hasResources || false
         };
     };
 
@@ -189,18 +208,21 @@ export default function LibraryPage() {
 
                         <div className={styles.gridContainer}>
                             <div className={styles.grid}>
-                                {validItems.map((item) => (
-                                    <LibraryCard
-                                        key={item.id}
-                                        item={item}
-                                        onDownload={(item, format) => {
-                                            const originalItem = filteredItems.find(i => i.bookId === item.bookId);
-                                            if (originalItem) {
-                                                handleDownload(originalItem, format);
-                                            }
-                                        }}
-                                    />
-                                ))}
+                                {validItems.map((item) => {
+                                    const originalItem = filteredItems.find(i => i.bookId === item.bookId);
+                                    return (
+                                        <LibraryCard
+                                            key={item.id}
+                                            item={item}
+                                            hasResources={originalItem?.hasResources || false}
+                                            onDownload={(item, format) => {
+                                                if (originalItem) {
+                                                    handleDownload(originalItem, format);
+                                                }
+                                            }}
+                                        />
+                                    );
+                                })}
                             </div>
                         </div>
                     </>

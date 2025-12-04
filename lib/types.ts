@@ -42,6 +42,9 @@ export interface Book {
   createdAt?: string;
   updatedAt?: string;
   createdBy?: string;
+  
+  // Resources
+  hasResources?: boolean; // Indica si el libro tiene contenido extra disponible
 }
 
 export interface Category {
@@ -132,4 +135,32 @@ export interface LibraryEntry {
   grantedAt: string; // ISO date
   source: 'order' | 'manual';
   orderId: string | null;
+}
+
+// Centro de Recursos para Libros
+export interface ResourceVideo {
+  id: string;
+  title: string;
+  url: string;
+  description?: string;
+  duration?: string; // Ej: "15:30"
+  order: number;
+}
+
+export interface ResourceSection {
+  id: string;
+  title: string;
+  description?: string;
+  order: number;
+  videos: ResourceVideo[];
+}
+
+export interface BookResources {
+  bookId: string;
+  introTitle: string;
+  introText: string;
+  sections: ResourceSection[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
