@@ -4,9 +4,17 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/shared/Button';
+import TagInput from '@/components/admin/TagInput';
+import MultiSelect, { MultiSelectOption } from '@/components/admin/MultiSelect';
+import UrlInput from '@/components/admin/UrlInput';
 import { createBook } from '@/lib/firebase/books';
+import { getAllCategories } from '@/lib/firebase/categories';
+import { getActiveCollections } from '@/lib/firebase/collections';
 import { useAuth } from '@/lib/context/AuthContext';
-import { Save, X } from 'lucide-react';
+import { generateSlug } from '@/lib/utils/slug';
+import { validateUrl } from '@/lib/utils/url';
+import { Save, X, Link as LinkIcon, Video } from 'lucide-react';
+import Link from 'next/link';
 import styles from '@/styles/pages/admin/BookForm.module.css';
 
 export default function CreateBookPage() {
@@ -86,30 +94,90 @@ export default function CreateBookPage() {
         title: '',
         subtitle: '',
         author: '',
+        slug: '',
         price: '',
         isFree: false,
         featured: false,
         description: '',
         descriptionLong: '',
+        metaDescription: '',
         learningPoints: [''],
-        category: 'devocionales',
+        category: '',
         audience: 'adultos',
+        tags: [] as string[],
         pages: '',
         language: 'Español',
         publishedDate: '',
         isbn: '',
         publisher: '',
+        formats: ['PDF'] as string[],
+        pdfUrl: '',
+        epubUrl: '',
+        previewUrl: '',
+        coverUrl: '',
+        collectionIds: [] as string[],
+        readingOrder: '',
+        hasResources: false,
         isActive: true
     });
 
+    const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+    const [collections, setCollections] = useState<MultiSelectOption[]>([]);
+    const [loadingData, setLoadingData] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+
+    // Cargar categorías y colecciones
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const [cats, cols] = await Promise.all([
+                    getAllCategories(),
+                    getActiveCollections()
+                ]);
+                
+                setCategories(cats.map(cat => ({ id: cat.id, name: cat.name })));
+                setCollections(cols.map(col => ({ id: col.id, label: col.name })));
+                
+                // Establecer categoría por defecto si hay categorías
+                if (cats.length > 0 && !formData.category) {
+                    setFormData(prev => ({ ...prev, category: cats[0].id }));
+                }
+            } catch (error) {
+                console.error('Error loading categories/collections:', error);
+            } finally {
+                setLoadingData(false);
+            }
+        };
+        
+        if (user && isAdmin) {
+            loadData();
+        }
+    }, [user, isAdmin]);
+
+    // Auto-generar slug desde título
+    useEffect(() => {
+        if (formData.title && !formData.slug) {
+            const generatedSlug = generateSlug(formData.title);
+            setFormData(prev => ({ ...prev, slug: generatedSlug }));
+        }
+    }, [formData.title]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Basic validation
-        if (!formData.title || !formData.author || !formData.description) {
-            alert('Por favor completa los campos requeridos');
+        // Validaciones
+        if (!formData.title || !formData.author || !formData.description || !formData.descriptionLong) {
+            alert('Por favor completa los campos requeridos (Título, Autor, Descripción corta y larga)');
+            return;
+        }
+
+        if (!formData.category) {
+            alert('Por favor selecciona una categoría');
+            return;
+        }
+
+        if (!formData.audience) {
+            alert('Por favor selecciona un público objetivo');
             return;
         }
 
@@ -118,30 +186,73 @@ export default function CreateBookPage() {
             return;
         }
 
+        // Validar URLs si se proporcionan
+        if (formData.pdfUrl && !validateUrl(formData.pdfUrl)) {
+            alert('La URL del PDF no es válida');
+            return;
+        }
+
+        if (formData.epubUrl && !validateUrl(formData.epubUrl)) {
+            alert('La URL del EPUB no es válida');
+            return;
+        }
+
+        if (formData.previewUrl && !validateUrl(formData.previewUrl)) {
+            alert('La URL de vista previa no es válida');
+            return;
+        }
+
+        if (formData.coverUrl && !validateUrl(formData.coverUrl)) {
+            alert('La URL de la portada no es válida');
+            return;
+        }
+
+        // Validar meta descripción
+        if (formData.metaDescription && formData.metaDescription.length > 160) {
+            alert('La meta descripción no puede tener más de 160 caracteres');
+            return;
+        }
+
         setSubmitting(true);
         
         try {
+            // Generar slug si no se proporcionó
+            const finalSlug = formData.slug.trim() || generateSlug(formData.title);
+            
+            // Preparar URLs de descarga
+            const downloadUrls: { pdf?: string; epub?: string } = {};
+            if (formData.pdfUrl) downloadUrls.pdf = formData.pdfUrl;
+            if (formData.epubUrl) downloadUrls.epub = formData.epubUrl;
+
             // Create book in Firestore
             const newBook = await createBook({
                 title: formData.title,
                 subtitle: formData.subtitle || undefined,
                 author: formData.author,
+                slug: finalSlug || undefined,
                 price: formData.isFree ? undefined : Number(formData.price),
                 isFree: formData.isFree,
                 featured: formData.featured,
                 description: formData.description,
-                descriptionLong: formData.descriptionLong || formData.description,
+                descriptionLong: formData.descriptionLong,
+                metaDescription: formData.metaDescription || undefined,
                 learningPoints: formData.learningPoints.filter(p => p.trim() !== ''),
                 category: formData.category,
                 audience: formData.audience,
+                tags: formData.tags.length > 0 ? formData.tags : undefined,
                 pages: formData.pages ? Number(formData.pages) : undefined,
                 language: formData.language,
                 publishedDate: formData.publishedDate || undefined,
                 isbn: formData.isbn || undefined,
                 publisher: formData.publisher || undefined,
+                formats: formData.formats,
+                downloadUrls: Object.keys(downloadUrls).length > 0 ? downloadUrls : undefined,
+                previewUrl: formData.previewUrl || undefined,
+                coverUrl: formData.coverUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop&q=80&fm=jpg',
+                collectionIds: formData.collectionIds.length > 0 ? formData.collectionIds : undefined,
+                readingOrder: formData.readingOrder ? Number(formData.readingOrder) : undefined,
+                hasResources: formData.hasResources,
                 isActive: formData.isActive,
-                formats: ['PDF', 'EPUB'],
-                coverUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop&q=80&fm=jpg', // Placeholder
                 createdBy: user.uid
             });
 
@@ -226,6 +337,20 @@ export default function CreateBookPage() {
                                 />
                             </div>
 
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Slug (URL personalizada)</label>
+                                <input
+                                    type="text"
+                                    value={formData.slug}
+                                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                                    placeholder="Se generará automáticamente desde el título"
+                                    className={styles.input}
+                                />
+                                <p className={styles.helpText}>
+                                    Si está vacío, se generará automáticamente desde el título
+                                </p>
+                            </div>
+
                             <div className={styles.formRow}>
                                 <div className={styles.formGroup}>
                                     <label className={styles.label}>Precio (COP)</label>
@@ -236,6 +361,7 @@ export default function CreateBookPage() {
                                         placeholder="35000"
                                         className={styles.input}
                                         disabled={formData.isFree}
+                                        required={!formData.isFree}
                                     />
                                 </div>
                             </div>
@@ -295,6 +421,26 @@ export default function CreateBookPage() {
                                     rows={6}
                                     required
                                 />
+                            </div>
+                        </div>
+
+                        {/* Section: SEO */}
+                        <div className={styles.section}>
+                            <h2 className={styles.sectionTitle}>SEO</h2>
+
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Meta descripción</label>
+                                <textarea
+                                    value={formData.metaDescription}
+                                    onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
+                                    placeholder="Descripción para motores de búsqueda y redes sociales (máx 160 caracteres)"
+                                    className={styles.textarea}
+                                    rows={2}
+                                    maxLength={160}
+                                />
+                                <div className={styles.charCount}>
+                                    {formData.metaDescription.length}/160 caracteres
+                                </div>
                             </div>
                         </div>
 
@@ -405,19 +551,21 @@ export default function CreateBookPage() {
                                 <label className={styles.label}>
                                     Categoría <span className={styles.required}>*</span>
                                 </label>
-                                <select
-                                    value={formData.category}
-                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    className={styles.select}
-                                    required
-                                >
-                                    <option value="devocionales">Devocionales</option>
-                                    <option value="maestros">Para Maestros</option>
-                                    <option value="familias">Para Familias</option>
-                                    <option value="jovenes">Para Jóvenes</option>
-                                    <option value="ninos">Para Niños</option>
-                                    <option value="liderazgo">Liderazgo</option>
-                                </select>
+                                {loadingData ? (
+                                    <p className={styles.helpText}>Cargando categorías...</p>
+                                ) : (
+                                    <select
+                                        value={formData.category}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        className={styles.select}
+                                        required
+                                    >
+                                        <option value="">Selecciona una categoría</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
 
                             <div className={styles.formGroup}>
@@ -434,25 +582,176 @@ export default function CreateBookPage() {
                                     <option value="jovenes">Jóvenes</option>
                                     <option value="ninos">Niños</option>
                                     <option value="familias">Familias</option>
+                                    <option value="maestros">Maestros / Líderes</option>
                                     <option value="todos">Todos</option>
                                 </select>
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Etiquetas / Palabras clave</label>
+                                <TagInput
+                                    tags={formData.tags}
+                                    onChange={(tags) => setFormData({ ...formData, tags })}
+                                    placeholder="Escribe y presiona Enter para agregar"
+                                />
                             </div>
                         </div>
                     </div>
 
                     {/* Right Column */}
                     <div className={styles.rightColumn}>
-                        {/* Section 6: Archivos */}
+                        {/* Section 6: Archivos del Libro */}
                         <div className={styles.section}>
-                            <h2 className={styles.sectionTitle}>Archivos</h2>
+                            <h2 className={styles.sectionTitle}>Archivos del Libro</h2>
 
-                            <div className={styles.uploadNote}>
-                                <p>📝 <strong>Nota:</strong> La subida de archivos (portada, PDF, EPUB) se implementará con la integración de Nextcloud.</p>
-                                <p>Por ahora, los libros usarán imágenes placeholder.</p>
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Formatos disponibles</label>
+                                <div className={styles.checkboxGroup}>
+                                    <label className={styles.checkbox}>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.formats.includes('PDF')}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setFormData({ ...formData, formats: [...formData.formats, 'PDF'] });
+                                                } else {
+                                                    setFormData({ ...formData, formats: formData.formats.filter(f => f !== 'PDF') });
+                                                }
+                                            }}
+                                        />
+                                        <span>PDF</span>
+                                    </label>
+                                    <label className={styles.checkbox}>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.formats.includes('EPUB')}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setFormData({ ...formData, formats: [...formData.formats, 'EPUB'] });
+                                                } else {
+                                                    setFormData({ ...formData, formats: formData.formats.filter(f => f !== 'EPUB') });
+                                                }
+                                            }}
+                                        />
+                                        <span>EPUB</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <UrlInput
+                                    label="URL de descarga PDF"
+                                    value={formData.pdfUrl}
+                                    onChange={(value) => setFormData({ ...formData, pdfUrl: value })}
+                                    placeholder="https://ejemplo.com/libro.pdf"
+                                    helpText="URL externa (Nextcloud, Firebase Storage, servidor propio)"
+                                />
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <UrlInput
+                                    label="URL de descarga EPUB"
+                                    value={formData.epubUrl}
+                                    onChange={(value) => setFormData({ ...formData, epubUrl: value })}
+                                    placeholder="https://ejemplo.com/libro.epub"
+                                    helpText="URL externa (opcional)"
+                                />
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <UrlInput
+                                    label="URL de vista previa"
+                                    value={formData.previewUrl}
+                                    onChange={(value) => setFormData({ ...formData, previewUrl: value })}
+                                    placeholder="https://ejemplo.com/preview.pdf"
+                                    helpText="PDF con primeras páginas (opcional)"
+                                />
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <UrlInput
+                                    label="URL de portada"
+                                    value={formData.coverUrl}
+                                    onChange={(value) => setFormData({ ...formData, coverUrl: value })}
+                                    placeholder="https://ejemplo.com/portada.jpg"
+                                    helpText="Si está vacío, se usará una imagen placeholder"
+                                />
                             </div>
                         </div>
 
-                        {/* Section 7: Estado */}
+                        {/* Section 7: Colecciones y Orden */}
+                        <div className={styles.section}>
+                            <h2 className={styles.sectionTitle}>Colecciones y Orden</h2>
+
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Colecciones</label>
+                                {loadingData ? (
+                                    <p className={styles.helpText}>Cargando colecciones...</p>
+                                ) : (
+                                    <MultiSelect
+                                        options={collections}
+                                        selectedIds={formData.collectionIds}
+                                        onChange={(ids) => setFormData({ ...formData, collectionIds: ids })}
+                                        placeholder="Selecciona colecciones"
+                                        searchPlaceholder="Buscar colecciones..."
+                                    />
+                                )}
+                                <p className={styles.helpText}>
+                                    Selecciona las colecciones a las que pertenece este libro
+                                </p>
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Orden de lectura</label>
+                                <input
+                                    type="number"
+                                    value={formData.readingOrder}
+                                    onChange={(e) => setFormData({ ...formData, readingOrder: e.target.value })}
+                                    placeholder="1"
+                                    className={styles.input}
+                                    min="1"
+                                />
+                                <p className={styles.helpText}>
+                                    Orden dentro de la colección (opcional)
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Section 8: Centro de Recursos */}
+                        <div className={styles.section}>
+                            <h2 className={styles.sectionTitle}>Centro de Recursos</h2>
+
+                            <div className={styles.checkboxGroup}>
+                                <label className={styles.checkbox}>
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.hasResources}
+                                        onChange={(e) => setFormData({ ...formData, hasResources: e.target.checked })}
+                                    />
+                                    <span>Este libro tiene contenido extra (Centro de Recursos)</span>
+                                </label>
+                                <p className={styles.helpText}>
+                                    Si está marcado, los usuarios que tengan este libro podrán acceder a videos y materiales adicionales
+                                </p>
+                            </div>
+
+                            {formData.hasResources && (
+                                <div className={styles.helpText} style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Video size={16} />
+                                    <span>
+                                        Después de crear el libro, podrás{' '}
+                                        <Link href="#" className={styles.link} onClick={(e) => {
+                                            e.preventDefault();
+                                            alert('Esta funcionalidad estará disponible después de crear el libro');
+                                        }}>
+                                            administrar los recursos
+                                        </Link>
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Section 9: Estado */}
                         <div className={styles.section}>
                             <h2 className={styles.sectionTitle}>Estado del Libro</h2>
 

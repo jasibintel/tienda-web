@@ -45,6 +45,22 @@ export interface Book {
   
   // Resources
   hasResources?: boolean; // Indica si el libro tiene contenido extra disponible
+  
+  // SEO and Metadata
+  slug?: string; // Slug personalizado para URL
+  metaDescription?: string; // Meta descripción para SEO (máx 160 caracteres)
+  tags?: string[]; // Etiquetas/palabras clave
+  
+  // Download URLs
+  downloadUrls?: {
+    pdf?: string;
+    epub?: string;
+  };
+  previewUrl?: string; // URL de vista previa
+  
+  // Collections
+  collectionIds?: string[]; // IDs de colecciones a las que pertenece
+  readingOrder?: number; // Orden de lectura en colecciones
 }
 
 export interface Category {

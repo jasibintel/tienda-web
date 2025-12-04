@@ -33,7 +33,16 @@ function docToBook(docSnap: QueryDocumentSnapshot<DocumentData>): Book {
         isFree: data.isFree || false,
         featured: data.featured || false,
         formats: data.formats || ['PDF'],
-        isActive: data.isActive !== undefined ? data.isActive : true
+        isActive: data.isActive !== undefined ? data.isActive : true,
+        // Nuevos campos
+        tags: data.tags || undefined,
+        slug: data.slug || undefined,
+        metaDescription: data.metaDescription || undefined,
+        downloadUrls: data.downloadUrls || undefined,
+        previewUrl: data.previewUrl || undefined,
+        collectionIds: data.collectionIds || undefined,
+        readingOrder: data.readingOrder || undefined,
+        hasResources: data.hasResources || false
     } as Book;
 }
 
@@ -503,11 +512,28 @@ export async function filterBooks(filters: BookFilters): Promise<Book[]> {
 // Crear libro (solo admin)
 export async function createBook(bookData: Omit<Book, 'id'>): Promise<Book> {
     try {
-        const docRef = await addDoc(collection(db, BOOKS_COLLECTION), {
+        // Importar generateSlug para generar slug si no se proporciona
+        const { generateSlug } = await import('@/lib/utils/slug');
+        
+        // Generar slug si no se proporciona
+        const slug = bookData.slug?.trim() || generateSlug(bookData.title);
+        
+        // Preparar datos para Firestore
+        const firestoreData: any = {
             ...bookData,
+            slug: slug || undefined,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
+        };
+        
+        // Limpiar campos undefined para no guardarlos en Firestore
+        Object.keys(firestoreData).forEach(key => {
+            if (firestoreData[key] === undefined) {
+                delete firestoreData[key];
+            }
         });
+        
+        const docRef = await addDoc(collection(db, BOOKS_COLLECTION), firestoreData);
         
         const newBook = await getBookById(docRef.id);
         if (!newBook) {
@@ -523,11 +549,33 @@ export async function createBook(bookData: Omit<Book, 'id'>): Promise<Book> {
 // Actualizar libro (solo admin)
 export async function updateBook(id: string, updates: Partial<Book>): Promise<Book> {
     try {
-        const bookRef = doc(db, BOOKS_COLLECTION, id);
-        await updateDoc(bookRef, {
-            ...updates,
-            updatedAt: serverTimestamp()
+        const { generateSlug } = await import('@/lib/utils/slug');
+        
+        // Si se actualiza el título y no hay slug, generar uno
+        const firestoreUpdates: any = { ...updates };
+        
+        if (updates.title && !updates.slug) {
+            // Si no hay slug en los updates, mantener el existente o generar uno nuevo
+            const currentBook = await getBookById(id);
+            if (!currentBook?.slug) {
+                firestoreUpdates.slug = generateSlug(updates.title);
+            }
+        } else if (updates.slug) {
+            // Si se proporciona un slug, usarlo (puede estar vacío para regenerar)
+            firestoreUpdates.slug = updates.slug.trim() || generateSlug(updates.title || '');
+        }
+        
+        firestoreUpdates.updatedAt = serverTimestamp();
+        
+        // Limpiar campos undefined
+        Object.keys(firestoreUpdates).forEach(key => {
+            if (firestoreUpdates[key] === undefined) {
+                delete firestoreUpdates[key];
+            }
         });
+        
+        const bookRef = doc(db, BOOKS_COLLECTION, id);
+        await updateDoc(bookRef, firestoreUpdates);
         
         const updatedBook = await getBookById(id);
         if (!updatedBook) {

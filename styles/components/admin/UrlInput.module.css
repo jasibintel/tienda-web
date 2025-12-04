@@ -1,0 +1,89 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.label {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-neutral-800);
+}
+
+.required {
+    color: var(--color-error-500);
+}
+
+.inputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input {
+    width: 100%;
+    padding: 10px 40px 10px 12px;
+    border: 1px solid var(--color-neutral-300);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-neutral-900);
+    transition: all var(--transition-base) var(--ease-in-out);
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.input.valid {
+    border-color: var(--color-success-500);
+}
+
+.input.valid:focus {
+    box-shadow: 0 0 0 3px var(--color-success-100);
+}
+
+.input.error {
+    border-color: var(--color-error-500);
+}
+
+.input.error:focus {
+    box-shadow: 0 0 0 3px var(--color-error-100);
+}
+
+.icon {
+    position: absolute;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+
+.validIcon {
+    color: var(--color-success-500);
+}
+
+.errorIcon {
+    color: var(--color-error-500);
+}
+
+.errorMessage {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--color-error-600);
+    margin-top: 4px;
+}
+
+.helpText {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--color-neutral-600);
+    margin-top: 4px;
+}
+

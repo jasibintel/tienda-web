@@ -1,0 +1,76 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.tagsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    padding: 8px;
+    border: 1px solid var(--color-neutral-300);
+    border-radius: var(--radius-md);
+    min-height: 42px;
+    background: var(--color-neutral-0);
+    transition: all var(--transition-base) var(--ease-in-out);
+}
+
+.tagsContainer:focus-within {
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-primary-50);
+    color: var(--color-primary-700);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.removeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    background: transparent;
+    border: none;
+    color: var(--color-primary-600);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all var(--transition-base) var(--ease-in-out);
+}
+
+.removeButton:hover {
+    background: var(--color-primary-100);
+    color: var(--color-primary-800);
+}
+
+.input {
+    flex: 1;
+    min-width: 150px;
+    border: none;
+    outline: none;
+    padding: 4px 8px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-neutral-900);
+    background: transparent;
+}
+
+.input::placeholder {
+    color: var(--color-neutral-400);
+}
+
+.helpText {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--color-neutral-500);
+}
+
